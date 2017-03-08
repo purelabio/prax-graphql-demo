@@ -1,0 +1,20 @@
+@include flex-containers;
+@include flex-childs;
+
+@include space(0, 8);
+
+.abs {
+  @include position(absolute);
+}
+
+.fix {
+  @include position(fixed);
+}
+
+.width {
+  @include sizing(width, 0, 16);
+}
+
+.rounded {
+  @include rounding($radius-default);
+}

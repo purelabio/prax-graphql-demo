@@ -1,0 +1,433 @@
+// WTB naming convention for:
+//   :hover, :focus
+//   :hover, :focus, .active
+//   .active
+// busy?
+// interact?
+// ?
+
+@mixin interact(
+  $fg-color,
+  $fg-color-active: darken($fg-color, 10%),
+  $fg-color-disabled: lighten($fg-color, 20%)
+) {
+  color: $fg-color;
+  &:hover, &:active, &.active {
+    color: $fg-color-active;
+  }
+  &[disabled] {
+    color: $fg-color-disabled;
+  }
+}
+
+@mixin interact-bg($bg-color, $fg-color: $color-white) {
+  background-color: $bg-color;
+  color: $fg-color;
+  &:hover, &:active, &.active {
+    background-color: darken($bg-color, 10%);
+    color: darken($fg-color, 10%);
+  }
+  &[disabled] {
+    background-color: lighten($bg-color, 30%);
+  }
+}
+
+.fa.fa-facebook     {color: $color-facebook}
+.fa.fa-google       {color: $color-google}
+.fa.fa-google-plus  {color: $color-google-plus}
+.fa.fa-github       {color: $color-github}
+.fa.fa-instagram    {color: $color-instagram}
+.fa.fa-linkedin     {color: $color-linkedin}
+.fa.fa-skype        {color: $color-skype}
+.fa.fa-twitter      {color: $color-twitter}
+.fa.fa-youtube-play {color: $color-youtube}
+
+@mixin color-scheme (
+  $color-04: $color-04,
+  $color-15: $color-15,
+  $color-30: $color-30,
+  $color-54: $color-54,
+  $color-87: $color-87,
+  $color-white-04: $color-white-04,
+  $color-white-15: $color-white-15,
+  $color-white-30: $color-white-30,
+  $color-white-54: $color-white-54,
+  $color-white-87: $color-white-87,
+  $color-blue: $color-blue,
+  $color-orange: $color-orange,
+  $color-white: $color-white,
+  $color-black: $color-black,
+  $color-green: $color-green,
+  $color-red: $color-red,
+  $color-placeholder-light: $color-placeholder-light,
+  $color-focus-indicator: $color-focus-indicator,
+  $color-focus-indicator-solid: $color-focus-indicator-solid
+) {
+  @include color('04',       $color-04);
+  @include color('15',       $color-15);
+  @include color('30',       $color-30);
+  @include color('54',       $color-54);
+  @include color('87',       $color-87);
+  @include color('white-04', $color-white-04);
+  @include color('white-15', $color-white-15);
+  @include color('white-30', $color-white-30);
+  @include color('white-54', $color-white-54);
+  @include color('white-87', $color-white-87);
+  @include color('blue',     $color-blue);
+  @include color('orange',   $color-orange);
+  @include color('white',    $color-white);
+  @include color('green',    $color-green);
+  @include color('red',      $color-red);
+  @include color('yellow',   $color-yellow);
+
+  .shadow {
+    @include shadow('04',    $color-04);
+    @include shadow('04',    $color-04,    inset);
+    @include shadow('15',    $color-15);
+    @include shadow('15',    $color-15,    inset);
+    @include shadow('30',    $color-30,    inset);
+    @include shadow('30',    $color-30);
+    @include shadow('red',   $color-red,   inset);
+    @include shadow('blue',  $color-blue,  inset);
+    @include shadow('green', $color-green, inset);
+    @include shadow('white', $color-white, inset);
+    @include shadow('focus', $color-focus-indicator, inset);
+  }
+
+  @include button-size('m', 0.25rem 1rem);
+  @include button-size('l',  0.5rem 1rem);
+
+  @include button('orange', $color-orange, $color-white, $radius-default) {
+    @include button--active(#e57700, null);
+    @include button--hover(#ffa445, $color-white);
+    @include button--disabled(#ffddb2, null);
+    @include button--icon($color-white, null, null, null);
+  }
+  @include button-reduction('m', 'orange');
+  @include button-reduction('l', 'orange');
+
+  @include button('gray', $color-04, $color-54, $radius-default) {
+    @include button--hover(null, $color-87);
+    @include button--disabled(lighten($color-04, 50%), null);
+    @include button--icon($color-30, $color-87, null, null);
+  }
+  @include button-reduction('m', 'gray');
+  @include button-reduction('l', 'gray');
+
+  @include button('blue', $color-blue, $color-white, $radius-default) {
+    @include button--icon($color-white, $color-white, null, null);
+  }
+  @include button-reduction('m', 'blue');
+  @include button-reduction('l', 'blue');
+
+  @include button('white', $color-white, $color-blue, $radius-default) {
+    @include button--icon($color-blue, $color-blue, null, null);
+  }
+  @include button-reduction('m', 'white');
+  @include button-reduction('l', 'white');
+
+  @include button('green', $color-green, $color-white, $radius-default) {
+    @include button--hover(null, $color-white);
+    @include button--icon($color-white, $color-white, null, null);
+  }
+  @include button-reduction('m', 'green');
+  @include button-reduction('l', 'green');
+
+  body {
+    @extend .color-87;
+    @extend .bg-white;
+  }
+
+  // Reasons for using box-shadow instead of outline:
+  // 1. In FF, outline bubbles around absolutely positioned children, forming
+  // grotesque shapes.
+  // 2. box-shadow respects border-radius.
+  :focus {
+    outline: none;
+  }
+  .last-input-keyboard :focus {
+    box-shadow: focus-box-shadow($color-focus-indicator);
+  }
+  select:focus {
+    box-shadow: none;
+  }
+  .last-input-keyboard select:focus {
+    outline: -webkit-focus-ring-color auto;
+  }
+
+  .interact-gray-inverse {
+    @extend .bg-white;
+    @extend .color-54;
+    &:hover, &:focus {
+      @extend .color-87;
+    }
+
+    &:active, &.active {
+      @extend .bg-54;
+      @extend .color-white-87;
+    }
+  }
+
+  .interact-blue {
+    @include interact($color-blue);
+  }
+
+  .interact-red {
+    @include interact($color-red);
+  }
+
+  .interact-54 {
+    @include interact($color-54, $fg-color-active: $color-87, $fg-color-disabled: $color-15);
+  }
+
+  .interact-white {
+    background-color: transparent;
+    @include interact($color-white);
+  }
+
+  .interact-bg-04 {
+    @extend .bg-04;
+    @extend .color-87;
+    &:hover, &:active, &.active {
+      @extend .color-54;
+    }
+  }
+
+  .interact-04-bg {
+    @extend .bg-white;
+    @extend .color-87;
+    &:hover, &:focus, &:active, &.active {
+      @extend .bg-04;
+    }
+  }
+
+  .interact-bg-green {@include interact-bg($color-green);}
+  .interact-bg-red {@include interact-bg($color-red);}
+  .interact-bg-blue {@include interact-bg($color-blue);}
+  .interact-bg-orange {@include interact-bg($color-orange);}
+
+  .theme-blue {
+    @extend .bg-white;
+    @extend .color-blue;
+  }
+
+  .theme-orange {
+    @extend .bg-white;
+    @extend .color-orange;
+  }
+
+  .theme-bg-04 {
+    @extend .bg-04;
+    @extend .color-87;
+  }
+
+  .theme-bg-white {
+    @extend .bg-white;
+    @extend .color-87;
+  }
+
+  .theme-bg-blue {
+    @extend .bg-blue;
+    @extend .color-white;
+  }
+
+  .theme-bg-green {
+    @extend .bg-green;
+    @extend .color-white;
+  }
+
+  .theme-bg-green-lucent {
+    background-color: rgba($color-green, $lucent-fraction);
+    @extend .color-white;
+  }
+
+  .theme-bg-red {
+    @extend .bg-red;
+    @extend .color-white;
+  }
+
+  .theme-bg-red-lucent {
+    background-color: rgba($color-red, $lucent-fraction);
+    @extend .color-white;
+  }
+
+  .theme-bg-orange {
+    @extend .bg-orange;
+    @extend .color-white;
+  }
+
+  .active-theme-bg-blue {
+    &:hover, &:active, &.active {
+      @extend .theme-bg-blue;
+    }
+  }
+
+  .busy-gray {
+    @extend .color-54;
+    &:hover, &:active {
+      @extend .color-87;
+      @extend .bg-04;
+    }
+  }
+
+  .input {
+    @extend .shadow-in-15;
+    @include placeholder($color-30);
+
+    &:focus {
+      @include placeholder($color-15);
+    }
+
+    &:hover {
+      @extend .shadow-in-focus;
+    }
+
+    &:focus {
+      box-shadow: focus-box-shadow($color: $color-focus-indicator);
+    }
+
+    &.valid {
+      @extend .shadow-in-green;
+    }
+
+    &.error {
+      @extend .shadow-in-red;
+    }
+
+    &[disabled] {
+      @extend .bg-04;
+      @extend .color-30;
+      @extend .shadow-in-15;
+    }
+
+    &:-webkit-autofill {
+      box-shadow: inset 0 0 0 1px $color-blue,
+                  inset 0 0 0 2rem white;
+    }
+  }
+
+  .input-holo {
+    border-radius: 0;
+
+    box-shadow: none;
+    @include holo-input-border($color-15);
+
+    &:hover {
+      box-shadow: none;
+      @include holo-input-border($color-focus-indicator-solid);
+    }
+
+    &:focus {
+      box-shadow: none;
+      @include holo-input-border($width: 2px, $color: $color-focus-indicator-solid);
+    }
+
+    &[disabled] {
+      box-shadow: none;
+      @include holo-input-border($width: 2px, $color: $color-15);
+    }
+  }
+
+  // Tentative
+  .bg-green-dark {
+    background-color: darken($color-green, 10%);
+  }
+
+  .placeholder-color-54::placeholder {
+    @extend .color-54;
+  }
+
+  @content;
+}
+
+@mixin charts-color-scheme (
+  $color-15: $color-15,
+  $color-30: $color-30,
+  $color-54: $color-54,
+  $color-87: $color-87,
+  $color-white: $color-white,
+  $color-black: $color-black,
+  $color-green: $color-green,
+  $color-red: $color-red,
+  $color-pink: $color-pink
+) {
+  .fill-black {
+    fill: $color-black;
+  }
+
+  .fill-54 {
+    fill: $color-54;
+  }
+
+  .fill-30 {
+    fill: $color-30;
+  }
+
+  .fill-red {
+    fill: $color-red;
+  }
+
+  .fill-pink {
+    fill: $color-pink;
+  }
+
+  .stroke-54 {
+    stroke: $color-54;
+  }
+
+  .stroke-15 {
+    stroke: $color-15;
+  }
+
+  .stroke-green {
+    stroke: $color-green;
+  }
+}
+
+@include color-scheme;
+
+@include charts-color-scheme;
+
+.color-scheme-dark {
+  @include color-scheme (
+    $color-04: rgba(white, .04),
+    $color-15: rgba(white, .15),
+    $color-30: rgba(white, .50),
+    $color-54: rgba(white, .85),
+    $color-87: rgba(white, .97),
+    $color-white-04: darken(#7986CB, 04%),
+    $color-white-15: darken(#7986CB, 15%),
+    $color-white-30: darken(#7986CB, 30%),
+    $color-white-54: darken(#7986CB, 54%),
+    $color-white-87: darken(#7986CB, 87%),
+    $color-blue: #FE528C,
+    $color-orange: $color-orange,
+    $color-white: #1F2036,
+    $color-black: white,
+    $color-green: #2DEBAE,
+    $color-red: #FE528C,
+    $color-placeholder-light: $color-placeholder-light,
+    $color-focus-indicator: lighten($color-focus-indicator, 20%),
+    $color-focus-indicator-solid: darken($color-blue, 15%)
+  ) {
+    a {
+      @extend .color-blue;
+    }
+
+    .dark-invert {
+      filter: invert(90%);
+    }
+  }
+
+  @include charts-color-scheme (
+    $color-15: rgba(white, .15),
+    $color-30: rgba(white, .50),
+    $color-54: rgba(white, .85),
+    $color-87: rgba(white, .97),
+    $color-white: #1F2036,
+    $color-black: white,
+    $color-green: #2DEBAE,
+    $color-red: #FE528C,
+    $color-pink: $color-pink
+  );
+}

@@ -1,0 +1,16 @@
+
+.rdt {
+  position: relative;
+}
+
+.rdt::after {
+  @include fa-icon;
+  content: $fa-var-calendar;
+  position: absolute;
+  right: 0.5rem;
+  top: 0;
+  transform: translateY(60%);
+  cursor: pointer;
+  // Causes clicks to pass through directly to the underlying input.
+  pointer-events: none;
+}

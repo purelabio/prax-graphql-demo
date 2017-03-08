@@ -1,0 +1,71 @@
+{
+  "parser": "babel-eslint",
+  "extends": "eslint:recommended",
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "plugins": [
+    "react"
+  ],
+  "rules": {
+    "camelcase": "off",
+    "comma-dangle": "off",
+    "comma-spacing": "error",
+    "consistent-return": "error",
+    "curly": ["error", "multi-line"],
+    "dot-notation": ["error", {"allowKeywords": true}],
+    "eqeqeq": ["error", "allow-null"],
+    "indent": ["error", 2, {"SwitchCase": 1}],
+    "jsx-quotes": ["error", "prefer-single"],
+    "new-cap": "off",
+    "max-len": ["error", 100],
+    "no-cond-assign": "error",
+    "no-console": "off",
+    "no-empty": "off",
+    "no-extra-boolean-cast": "error",
+    "no-extra-semi": "error",
+    "no-fallthrough": "error",
+    "no-func-assign": "error",
+    "no-inner-declarations": ["error", "both"],
+    "no-loop-func": "off",
+    "no-mixed-spaces-and-tabs": "error",
+    "no-restricted-globals": ["error",
+      // window (browser)
+      "alert", "blur", "confirm", "event", "fetch", "find", "focus", "history",
+      "length", "location", "name", "navigator", "open", "parent", "print",
+      "prompt", "scroll", "self", "status", "stop", "top",
+      // global (node)
+      "root"
+    ],
+    "no-shadow-restricted-names": "error",
+    "no-sparse-arrays": "error",
+    "no-throw-literal": "error",
+    "no-trailing-spaces": "error",
+    "no-unexpected-multiline": "error",
+    "no-unreachable": "error",
+    "no-unused-vars": ["error", {"argsIgnorePattern": "^_", "varsIgnorePattern": "^_"}],
+    "no-var": "error",
+    "object-curly-spacing": ["error", "never"],
+    "object-shorthand": "error",
+    "prefer-arrow-callback": "off",
+    "prefer-const": "error",
+    "quote-props": ["error", "as-needed"],
+    "quotes": ["error", "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
+    "react/jsx-curly-spacing": "error",
+    "semi": ["error", "never"],
+    "space-before-blocks": ["error", "always"],
+    "space-in-parens": ["error", "never"],
+    "spaced-comment": ["error", "always"],
+    "strict": "off",
+    "valid-typeof": "error",
+    "yoda": "error"
+  },
+  "globals": {
+    "React": true,
+    "_": true,
+    "Promise": true
+  }
+}

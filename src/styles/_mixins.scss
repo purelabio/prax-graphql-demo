@@ -1,0 +1,32 @@
+// WTB more descriptive name
+@mixin mark-t($width: $radius-default) {box-shadow: inset 0 ($width) 0 0 $color-orange;}
+@mixin mark-r($width: $radius-default) {box-shadow: inset (-$width) 0 0 0 $color-orange;}
+@mixin mark-b($width: $radius-default) {box-shadow: inset 0 (-$width) 0 0 $color-orange;}
+@mixin mark-l($width: $radius-default) {box-shadow: inset ($width) 0 0 0 $color-orange;}
+
+@mixin busy {
+  &:hover, &:focus {@content;}
+}
+
+@mixin transition($prop: all) {
+  transition: $prop $transition-duration $transition-function;
+}
+
+@function focus-box-shadow($color: $color-focus-indicator) {
+  @return 0 0 0 $focus-indicator-thickness $color;
+}
+
+@mixin holo-input-border($color, $width: 1px, $height: 0.5rem) {
+  // Composite background doesn't seem to accept flat colours.
+  $bg: linear-gradient($color, $color);
+
+  background:
+    bottom left $bg no-repeat,
+    bottom center $bg repeat-x,
+    bottom right $bg no-repeat;
+
+  background-size:
+    $width $height,
+    $width $width,
+    $width $height;
+}
