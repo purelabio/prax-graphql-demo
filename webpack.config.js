@@ -23,6 +23,7 @@ module.exports = {
         loader: 'babel',
         include: [
           realpathSync('src/scripts'),
+          realpathSync('node_modules/purelib/src/js'),
         ]
       },
       {test: /\.json$/, loader: 'json'}
@@ -38,13 +39,11 @@ module.exports = {
 
   resolve: {
     alias: {
+      // Force-resolve react and react-dom to ensure we always get only one
+      // version of each.
       react: realpathSync('node_modules/react'),
       'react-dom': realpathSync('node_modules/react-dom'),
-      // `lodash/fp` internally requires `lodash.min`. We must use this file
-      // to avoid duplication.
-      lodash: pt.resolve('node_modules/lodash/lodash.min'),
-      // Alias to avoid confusing webpack
-      'lodash-fp': realpathSync('node_modules/lodash/fp'),
+      purelib: realpathSync('node_modules/purelib/src/js'),
     }
   },
 

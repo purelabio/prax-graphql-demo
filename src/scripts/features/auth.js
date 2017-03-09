@@ -55,7 +55,7 @@ exports.reducers = []
 exports.effects = []
 
 exports.watchers = [
-  storageAutoPersist(storage, sessionPath),
+  storageAutoPersist(storage, 'prax-graphql-demo', sessionPath),
 ]
 
 /**

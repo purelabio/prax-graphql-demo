@@ -22,7 +22,7 @@ if (module.hot) {
  * Setup
  */
 
-require('./utils/polyfills')
+require('purelib/polyfills')
 
 const {env, featureSetup} = require('./core')
 
@@ -81,7 +81,7 @@ env.enque(function init () {
  */
 
 const prax = require('prax')
-const fp = require('lodash-fp')
+const fp = require('lodash/fp')
 
 window.app = _.omit(
   {...prax,

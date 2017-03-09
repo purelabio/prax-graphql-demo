@@ -1,4 +1,5 @@
-const {duplicates, merge} = require('./utils')
+import {merge} from 'prax'
+import {duplicates} from 'purelib'
 
 export function extractViews (viewExports) {
   // Export keys are not minified.

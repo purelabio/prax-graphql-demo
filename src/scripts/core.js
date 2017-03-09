@@ -1,7 +1,7 @@
 import {global, Atom, defonce,
-        getIn, putIn, bind, flat, seq, testOr, adjoin, remove, isFunction, validate,
+        getIn, putIn, merge, bind, flat, seq, testOr, adjoin, remove, isFunction, validate,
         joinReducers, joinComputers} from 'prax'
-import {merge, storage, storageRead} from './utils'
+import {storage, storageRead} from 'purelib'
 
 /**
  * Env
@@ -62,7 +62,7 @@ export function featureSetup (env, features) {
   env.watchers = extract(features, 'watchers')
 
   // Initial state
-  env.state = merge(...extract(features, 'defaults'), storageRead(storage, []), env.state)
+  env.state = merge(...extract(features, 'defaults'), storageRead(storage, 'prax-graphql-demo', []), env.state)
 
   return seq(...extract(features, 'setup').map(fun => fun(env)).filter(isFunction))
 }

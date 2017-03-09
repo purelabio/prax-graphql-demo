@@ -1,7 +1,8 @@
 import {val, scan} from 'prax'
 import {Router, Route, IndexRoute, Redirect} from 'react-router'
 
-import {journal, maybeRouteMeta} from './utils'
+import {maybeRouteMeta} from 'purelib'
+import {journal} from './journal'
 
 import {
   Root,

@@ -1,7 +1,8 @@
 import {Link as RouterLink, IndexLink} from 'react-router'
 import {seq, testOr} from 'prax'
-import {preventDefault, readLocation, linkWithPersistence,
- linkToDict, strjoin} from '../utils'
+import {preventDefault, readLocation, linkToDict, strjoin} from '../utils'
+import {linkWithPersistence} from '../journal'
+
 
 // TODO roll our own "active route" detection. To define the active class,
 // accept a function from bool to string instead of just a string.
