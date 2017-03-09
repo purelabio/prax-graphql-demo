@@ -28,14 +28,12 @@ proxy.on('error', err => {
 })
 
 bs.init({
-  startPath: 'prax-graphql-demo/',
+  startPath: '/',
   server: {
     baseDir: 'gh-pages',
     middleware: [
       (req, res, next) => {
-        req.url = req.url
-          .replace(/^\/prax-graphql-demo\//, '/')
-          .replace(/^[/]*/, '/')
+        req.url = req.url.replace(/^[/]*/, '/')
         next()
       },
       (req, res, next) => {
