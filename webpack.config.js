@@ -1,75 +1,70 @@
 'use strict'
 
 const pt = require('path')
+const {realpathSync} = require('fs')
 const webpack = require('webpack')
 const prod = process.env.NODE_ENV === 'production'
-const realpathSync = require('fs').realpathSync
 
 module.exports = {
   entry: {
-    app: pt.resolve('src/scripts/app.js'),
+    main: pt.resolve('src/scripts/main.js'),
     embed: pt.resolve('src/scripts/embed.js'),
   },
 
   output: {
-    path: pt.resolve('dist'),
-    filename: '[name].js'
+    path: pt.resolve('gh-pages/scripts'),
+    filename: '[name].js',
+    // For dev middleware
+    publicPath: '/scripts/',
   },
 
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
-        loader: 'babel',
+        use: ['babel-loader'],
         include: [
           realpathSync('src/scripts'),
           realpathSync('node_modules/purelib/src/js'),
-        ]
+        ],
       },
-      {test: /\.json$/, loader: 'json'}
-    ].concat(!prod ? [] : [
-      // disable dev features and warnings in React and react-router
-      {
-        test: /react.*\.jsx?$/,
-        include: /node_modules/,
-        loader: 'transform?envify'
-      }
-    ])
+      ...(!prod ? [] : [
+        // disable dev features and warnings in React and react-router
+        {
+          test: /react.*\.jsx?$/,
+          include: /node_modules/,
+          loader: 'transform?envify'
+        }
+      ])
+    ],
   },
 
   resolve: {
     alias: {
-      // Force-resolve react and react-dom to ensure we always get only one
-      // version of each.
-      react: realpathSync('node_modules/react'),
-      'react-dom': realpathSync('node_modules/react-dom'),
       purelib: realpathSync('node_modules/purelib/src/js'),
-    }
+    },
   },
 
   plugins: [
     new webpack.ProvidePlugin({
-      React: 'react',
       _: 'lodash',
+      React: 'react',
     }),
-    new webpack.ContextReplacementPlugin(
-      /moment\/locale/,
-      // Ignore all locales; `en` is always included.
-      /matches_nothing/
-    ),
-  ].concat(!prod ? [
-    new webpack.HotModuleReplacementPlugin()
-  ] : [
-    new webpack.optimize.UglifyJsPlugin({
-      minimize: true,
-      compress: {warnings: false, screw_ie8: true},
-      mangle: true
-    })
-  ]),
+    ...(prod ? [
+      new webpack.optimize.UglifyJsPlugin({
+        minimize: true,
+        compress: {warnings: false, screw_ie8: true},
+        mangle: true,
+        sourceMap: true,
+      }),
+    ] : [
+      new webpack.HotModuleReplacementPlugin(),
+    ]),
+  ],
 
-  devtool: prod ? 'source-map' : null,
+  devtool: prod ? 'source-map' : false,
 
-  // For reference. Disable when reviewing bundle details.
+  // For dev middleware
   stats: {
     colors: true,
     chunks: false,

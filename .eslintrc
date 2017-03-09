@@ -64,8 +64,8 @@
     "yoda": "error"
   },
   "globals": {
-    "React": true,
     "_": true,
-    "Promise": true
+    "Promise": true,
+    "React": true
   }
 }

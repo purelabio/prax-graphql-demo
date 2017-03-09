@@ -6,7 +6,8 @@ const $ = require('gulp-load-plugins')()
 const del = require('del')
 const gulp = require('gulp')
 const marked = require('marked')
-const {extname} = require('path')
+const {obj: passthrough} = require('through2')
+const pt = require('path')
 const webpack = require('webpack')
 const {execSync, fork} = require('child_process')
 
@@ -28,10 +29,10 @@ const src = {
 }
 
 const out = {
-  root: 'dist',
-  scripts: 'dist/scripts',
-  styles: 'dist/styles',
-  images: 'dist/images',
+  root: 'gh-pages',
+  scripts: 'gh-pages/scripts',
+  styles: 'gh-pages/styles',
+  images: 'gh-pages/images',
 }
 
 const prod = process.env.NODE_ENV === 'production'
@@ -58,6 +59,23 @@ function noop () {}
 
 const Err = (key, msg) => new $.util.PluginError(key, msg, {showProperties: false})
 
+const rsyncConfig = {
+  '???': {
+    destination: '/dev/null',
+    root: '???',
+    hostname: '???',
+    username: '???',
+    incremental: true,
+    progress: true,
+    relative: true,
+    emptyDirectories: true,
+    recursive: true,
+    clean: true,
+    exclude: ['.DS_Store'],
+    include: []
+  }
+}
+
 
 /* ********************************* Tasks ********************************* */
 
@@ -80,8 +98,7 @@ gulp.task('static:copy', () => (
 ))
 
 gulp.task('static:watch', () => {
-  $.watch(src.static, gulp.series('static:copy'))
-  $.watch(src.staticFonts, gulp.series('static:copy'))
+  $.watch([src.static, src.staticFonts], gulp.series('static:copy'))
 })
 
 /**
@@ -94,11 +111,14 @@ gulp.task('html:build', () => {
   return gulp.src(src.html)
     .pipe($.statil({
       imports: {prod, deploySettings, version},
-      ignorePaths: path => /partials/.test(path),
-      rename: '$&.html',
-      pipeline: [
-        (content, path) => extname(path) === '.md' ? marked(content) : content
-      ]
+      pathRename: (path, {dir, name}) => (
+        path === 'index.html' || path === '404.html'
+        ? path
+        : pt.join(dir, name, 'index.html')
+      ),
+      postProcess: (content, path, {ext}) => (
+        ext === '.md' ? marked(content) : content
+      ),
     }))
     .pipe(gulp.dest(out.root))
 })
@@ -128,7 +148,7 @@ gulp.task('styles:build', () => (
   gulp.src(src.styleEntryFiles)
     .pipe($.sass({includePaths: [src.root]}))
     .pipe($.autoprefixer(autoprefixerSettings))
-    .pipe($.if(prod, $.cleanCss(cssCleanSettings)))
+    .pipe(!prod ? passthrough() : $.cleanCss(cssCleanSettings))
     .pipe(gulp.dest(out.styles))
 ))
 
@@ -186,7 +206,7 @@ gulp.task('devserver', () => {
 
 gulp.task('rsync', () => (
   gulp.src(out.root)
-    .pipe($.rsync(rsyncConfig.staging05))
+    .pipe($.rsync(rsyncConfig['???']))
 ))
 
 /**

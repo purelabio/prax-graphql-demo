@@ -1,3 +1,5 @@
+import {Link} from './link'
+
 export const Page404 = () => (
   <div className='col-center-center'>
     <h1 className='font-6'>404</h1>

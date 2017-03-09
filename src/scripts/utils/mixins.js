@@ -1,39 +1,8 @@
 import {effectMixin, stateMixin, onBlurMixin} from 'purelib/utils/mixins'
 import {findDOMNode} from 'react-dom'
-import {getIn, putIn, equal, bind, pipe, alter, val,
-  isFunction, validate, validateEach, on} from 'prax'
-import {validateForm, isPath} from 'purelib'
-import {registerRelevantPaths, deregisterRelevantPaths} from '../features/relevance'
-
-export function relevanceMixin (makePaths) {
-  validate(isFunction, makePaths)
-
-  function refreshPaths () {
-    const relevantPaths = makePaths.call(this, this.props, this.env.state)
-    validateEach(isPath, relevantPaths)
-    this._relevantPaths = relevantPaths
-  }
-
-  return {
-    componentWillMount () {
-      refreshPaths.call(this)
-      this.env.swap(registerRelevantPaths, this._relevantPaths)
-    },
-    componentWillReceiveProps () {
-      const oldPaths = this._relevantPaths
-      refreshPaths.call(this)
-      if (!equal(oldPaths, this._relevantPaths)) {
-        this.env.swap(pipe(
-          alter(deregisterRelevantPaths, oldPaths),
-          alter(registerRelevantPaths, this._relevantPaths),
-        ))
-      }
-    },
-    componentWillUnmount () {
-      this.env.swap(deregisterRelevantPaths, this._relevantPaths)
-    },
-  }
-}
+import {getIn, putIn, bind, val,
+  isFunction, validate, on} from 'prax'
+import {validateForm} from 'purelib'
 
 export function autoformMixins (makeXhr) {
   validate(isFunction, makeXhr)

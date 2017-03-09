@@ -1,12 +1,12 @@
 <!doctype html>
 
-<base href="/">
+<base href="/prax-graphql-demo/">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <title>prax-graphql-demo</title>
 
 <link rel="stylesheet" href="styles/main.css?{{version}}">
-<link rel="icon" href="favicon.ico">
+<link rel="icon" href="data:;base64,=">
 
 <!-- Prevent index.html caching -->
 <meta http-equiv="cache-control" content="max-age=0" />
@@ -15,17 +15,13 @@
 <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
 <meta http-equiv="pragma" content="no-cache" />
 
-<body>
-  <div id="root"></div>
-</body>
+<body></body>
+
+<div id="root"></div>
 
 <script>
   window.ver = '{{version}}'
   window.developmentMode = {{String(Boolean(deploySettings.developmentMode))}}
 </script>
 
-<script src="app.js?{{version}}"></script>
-
-{% if (deploySettings.analytics) { %}{% } %}
-
-{% if (deploySettings.errorTracking) { %}{% } %}
+<script src="scripts/main.js?{{version}}"></script>

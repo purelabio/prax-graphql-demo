@@ -1,8 +1,6 @@
 import {Link as RouterLink, IndexLink} from 'react-router'
 import {seq, testOr} from 'prax'
-import {preventDefault, readLocation, linkToDict, strjoin} from '../utils'
-import {linkWithPersistence} from '../journal'
-
+import {preventDefault, linkToDict, strjoin} from '../utils'
 
 // TODO roll our own "active route" detection. To define the active class,
 // accept a function from bool to string instead of just a string.
@@ -17,8 +15,6 @@ export function Link (
     props = {activeClassName: activeClassName || 'active', ...props}
   }
 
-  const link = linkWithPersistence(to, readLocation(read))
-
   props = {
     ...props,
     onClick: !disabled ? onClick : seq(preventDefault, onClick || _.noop),
@@ -26,11 +22,11 @@ export function Link (
   }
 
   return (
-    isEmptyLink(link)
+    isEmptyLink(to)
     ? <a {...props} />
-    : isIndexLink(link)
-    ? <IndexLink {...props} to={link} />
-    : <RouterLink {...props} to={link} />
+    : isIndexLink(to)
+    ? <IndexLink {...props} to={to} />
+    : <RouterLink {...props} to={to} />
   )
 }
 

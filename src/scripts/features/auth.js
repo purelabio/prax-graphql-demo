@@ -1,6 +1,5 @@
-import {getIn, putIn, bind, or, pipe, id, revise} from 'prax'
-import {runXhrIn, storage, storageAutoPersist, readAt, condTest,
-  addFullName, from, delPaths, st, Null, persistentQueryKeys} from '../utils'
+import {or, pipe, id, revise} from 'prax'
+import {storage, storageAutoPersist, readAt, from, delPaths} from '../utils'
 
 export const authFormPath      = ['forms', 'auth']
 export const usernamePath      = ['forms', 'auth', 'username']
@@ -72,5 +71,4 @@ export const readHasRole = revise([readAt(userRolesPath), id], _.includes)
 
 export function localLogout (env) {
   env.swap(delPaths(privatePaths))
-  env.send(st('route/query/replace', _.mapValues(_.mapKeys(persistentQueryKeys), Null)))
 }

@@ -16,17 +16,38 @@ if (prod) {
 }
 
 const compiler = prod ? null : require('webpack')(extend(config, {
-  entry: mapValues(config.entry, x => ['webpack-hot-middleware/client', x])
+  entry: mapValues(config.entry, fsPath => (
+    ['webpack-hot-middleware/client', fsPath]
+  ))
 }))
 
+const proxy = require('http-proxy').createProxyServer()
+
+proxy.on('error', err => {
+  console.error(err)
+})
+
 bs.init({
-  startPath: '/',
+  startPath: 'prax-graphql-demo/',
   server: {
-    baseDir: 'dist',
+    baseDir: 'gh-pages',
     middleware: [
+      (req, res, next) => {
+        req.url = req.url
+          .replace(/^\/prax-graphql-demo\//, '/')
+          .replace(/^[/]*/, '/')
+        next()
+      },
+      (req, res, next) => {
+        if (/^\/api/.test(req.url)) {
+          proxy.web(req, res, {target: 'http://FIXME'})
+        } else {
+          next()
+        }
+      },
       ...(prod ? [] : [
         require('webpack-dev-middleware')(compiler, {
-          publicPath: '/',
+          publicPath: config.output.publicPath,
           stats: config.stats
         }),
         require('webpack-hot-middleware')(compiler),
@@ -34,8 +55,8 @@ bs.init({
       require('connect-history-api-fallback')(),
     ]
   },
-  port: 43524,
-  files: 'dist',
+  port: 48763,
+  files: 'gh-pages',
   open: false,
   online: false,
   ui: false,
