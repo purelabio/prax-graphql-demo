@@ -33,8 +33,7 @@ module.exports = {
         {
           test: /react.*\.jsx?$/,
           include: /node_modules/,
-          use: ['transform-loader'],
-          resourceQuery: '?envify',
+          use: {loader: 'transform-loader', options: {envify: true}},
         }
       ])
     ],
