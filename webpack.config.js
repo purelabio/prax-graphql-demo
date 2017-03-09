@@ -22,18 +22,19 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        use: ['babel-loader'],
         include: [
           realpathSync('src/scripts'),
           realpathSync('node_modules/purelib/src/js'),
         ],
+        use: ['babel-loader'],
       },
       ...(!prod ? [] : [
         // disable dev features and warnings in React and react-router
         {
           test: /react.*\.jsx?$/,
           include: /node_modules/,
-          loader: 'transform?envify'
+          use: ['transform-loader'],
+          resourceQuery: '?envify',
         }
       ])
     ],
