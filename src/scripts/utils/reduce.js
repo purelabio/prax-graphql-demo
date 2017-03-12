@@ -56,7 +56,7 @@ export function delIn (value, path) {
   return putIn(value, path, null)
 }
 
-export const isLoggedIn = pipe(getf('session'), Boolean)
+export const isLoggedIn = pipe(getf('user'), Boolean)
 
 export function fullName (fields) {
   return strjoin(' ', [scan(fields, 'firstName'), scan(fields, 'lastName')])

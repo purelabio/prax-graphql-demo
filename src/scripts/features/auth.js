@@ -1,74 +1,49 @@
-import {or, pipe, id, revise} from 'prax'
-import {storage, storageAutoPersist, readAt, from, delPaths} from '../utils'
+import {global, defonce, isString, on, putAt} from 'prax'
+import Auth0Lock from 'auth0-lock'
 
-export const authFormPath      = ['forms', 'auth']
-export const usernamePath      = ['forms', 'auth', 'username']
-export const passwordPath      = ['forms', 'auth', 'password']
-export const errorMsgPath      = ['forms', 'auth', 'errorMsg']
-export const authHttpPath      = ['http', 'auth']
-export const sessionPath       = ['session']
-export const sessionIdPath     = ['session', 'sessionId']
-export const userIdPath        = ['session', 'userId']
-export const userRolesPath     = ['session', 'userRoles']
-
-const sessionXhrPath           = ['http', 'auth', 'session']
-const loginXhrPath             = ['http', 'auth', 'login']
-const logoutXhrPath            = ['http', 'auth', 'logout']
-
-export const readSyncingAuth = or(
-  readAt(sessionXhrPath),
-  readAt(loginXhrPath),
-  readAt(logoutXhrPath),
-)
-
-// TODO `Root` should render spinner in this state.
-export const readWaitingForSession = pipe(readAt(sessionXhrPath), Boolean)
-
-const privatePaths = [sessionPath, ['forms']]
-
-exports.defaults = {
-  session: void {
-    userId: '<uuid>',
-    sessionId: '<uuid>',
-    firstName: '',
-    lastName: '',
-  },
-  forms: {
-    auth: {
-      username: null,
-      password: null,
-      errorMsg: null,
-    },
-  },
-  http: {
-    auth: {
-      session: null,
-      login: null,
-      logout: null,
-    }
-  }
+const AUTH0_LOCK_CONFIG = {
+  clientId: 'fz3A7ALyhUquoHX5Z1YVGn8mj0sTQhwB',
+  domain: 'purelabio.auth0.com'
 }
 
-exports.reducers = []
+export function setup (env) {
+  env.auth0Lock = defonce(global, ['app', 'auth0Lock'], function init () {
+    const {clientId, domain} = AUTH0_LOCK_CONFIG
+    return new Auth0Lock(clientId, domain, {})
+  })
 
-exports.effects = []
+  env.auth0Lock.on('authenticated', function ({accessToken}) {
+    env.send({type: 'auth/access-token', accessToken})
+  })
 
-exports.watchers = [
-  storageAutoPersist(storage, 'prax-graphql-demo', sessionPath),
+  const storedAccessToken = localStorage.getItem('accessToken')
+  if (storedAccessToken) env.send({type: 'auth/access-token', accessToken: storedAccessToken})
+
+  return () => {}
+}
+
+exports.defaults = {}
+
+exports.reducers = [
+  on({type: 'auth/signed-in'}, (state, {profile}) => putAt(['user', 'profile'], state, profile))
 ]
 
-/**
- * Utils
- */
+exports.effects = [
+  on(
+    {type: 'auth/access-token', accessToken: isString},
+    (__, {accessToken}) => localStorage.setItem('accessToken', accessToken)
+  ),
 
-export function syncLogin (env, username, password) {}
+  on(
+    {type: 'auth/access-token', accessToken: isString},
+    ({send, auth0Lock}, {accessToken}) => {
+      auth0Lock.getUserInfo(
+        accessToken,
+        (error, profile) => send({type: 'auth/signed-in', profile})
+      )
+    }
+  ),
+]
 
-export function syncLogout (env) {}
+exports.watchers = []
 
-export const hasRole = revise([from(userRolesPath), id], _.includes)
-
-export const readHasRole = revise([readAt(userRolesPath), id], _.includes)
-
-export function localLogout (env) {
-  env.swap(delPaths(privatePaths))
-}

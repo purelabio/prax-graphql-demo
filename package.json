@@ -16,6 +16,7 @@
   "author": "Yury Egorenkov <yury.egorenkov> (https://github.com/yury-egorenkov)",
   "license": "ISC",
   "devDependencies": {
+    "auth0-lock": "^10.12.3",
     "babel-core": "6.23.1",
     "babel-eslint": "7.1.1",
     "babel-loader": "6.3.2",
