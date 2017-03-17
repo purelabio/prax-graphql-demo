@@ -1,8 +1,7 @@
 import {replace} from 'lodash/fp'
-import {getIn, on, putIn, seq, bind, and, not, isList, or, Watcher} from 'prax'
+import {getIn, on, putIn, seq, isList} from 'prax'
 
-import {testRoutePath, parseLocation,
-  onType, isLoggedIn, when, patchMask, meld} from '../utils'
+import {parseLocation, onType, patchMask, meld} from '../utils'
 import {journal, linkWithPersistence} from '../journal'
 
 export const routePath                      = ['route']
@@ -70,17 +69,7 @@ exports.effects = onType(/^route/, seq(
  * Watchers
  */
 
-exports.watchers = [
-  when(
-    and(not(isLoggedIn), not(testRoutePath(['']))),
-    bind(routeReplace, '')
-  ),
-
-  when(
-    and(isLoggedIn, testRoutePath([''])),
-    bind(routeReplace, '/chats')
-  ),
-]
+exports.watchers = []
 
 /**
  * Utils

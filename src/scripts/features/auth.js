@@ -1,4 +1,5 @@
-import {global, defonce, isString, on, putAt} from 'prax'
+import {defonce, getIn, global, isString, on, putAt, testOr, Watcher, ifelse} from 'prax'
+import {pathnamePath} from './route'
 import Auth0Lock from 'auth0-lock'
 
 const AUTH0_LOCK_CONFIG = {
@@ -12,7 +13,8 @@ export function setup (env) {
     return new Auth0Lock(clientId, domain, {})
   })
 
-  env.auth0Lock.on('authenticated', function ({accessToken}) {
+  env.auth0Lock.on('authenticated', ({accessToken}) => {
+    console.info(`authenticated:`, accessToken)
     env.send({type: 'auth/access-token', accessToken})
   })
 
@@ -45,5 +47,31 @@ exports.effects = [
   ),
 ]
 
-exports.watchers = []
+exports.watchers = [
+  Watcher(
+    ifelse(
+      read => read('user', 'profile'),
+      maybeRedirectIn,
+      maybeRedirectOut
+    )
+  )
+]
+
+const publicPathnames = [
+  '/',
+  /users\/(?:sign-up|sign-in|recover)/,
+]
+
+function maybeRedirectIn (__, env) {
+  if (testOr(...publicPathnames)(getIn(env.state, pathnamePath))) {
+    env.send({type: 'route/replace', value: {pathname: '/chats'}})
+  }
+}
+
+function maybeRedirectOut (__, env) {
+  if (!testOr(...publicPathnames)(getIn(env.state, pathnamePath))) {
+    // env.send({type: 'route/replace', value: {pathname: '/'}})
+  }
+}
+
 
