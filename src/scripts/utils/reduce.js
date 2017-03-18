@@ -1,5 +1,5 @@
-import {scan, getIn, getAt, putAt, patchAt, putIn,
-  bind, id, pipe, di, defer, rest, fanout, on, validate} from 'prax'
+import {scan, getIn, getAt, putAt, patchAt, putIn, isString,
+  bind, id, pipe, di, defer, rest, fanout, on, validate, validateEach} from 'prax'
 import {strjoin, isPath} from './utils'
 
 export function st (type, value) {
@@ -18,7 +18,11 @@ export const from = defer(getAt)
 
 export const getf = rest(from)
 
-export const passValue = pipe(di, getf('value'))
+export const passValue = passFrom('value')
+
+export function passFrom (field) {
+  return pipe(di, getf(field))
+}
 
 export const stf = defer(st)
 
@@ -79,4 +83,10 @@ export function undoAt (state, valuePath, formPath) {
   return getIn(state, valuePath) != null
     ? putIn(state, valuePath, null)
     : putIn(state, formPath, null)
+}
+
+export function putThis () {
+  validateEach(isString, arguments)
+
+  return putTo(arguments, passFrom(_.tail(arguments)))
 }
