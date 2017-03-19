@@ -5,7 +5,7 @@ import {
   Root,
   Page404,
   Auth0SignIn,
-  Chats
+  Channels
 } from './views'
 
 export const routes = (
@@ -13,7 +13,7 @@ export const routes = (
     <Route path='/' component={Root}>
       <IndexRoute component={Auth0SignIn} />
 
-      <Route path='/chats' component={Chats}>
+      <Route path='/channels' component={Channels}>
       </Route>
 
       <Route path='*' component={Page404} />

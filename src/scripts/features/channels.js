@@ -1,24 +1,39 @@
-import {on, putIn, patchIn, test, isDict, scan, merge} from 'prax'
+import {on, putIn, scan, pipe, alter, putInBy, append, not, test} from 'prax'
 import {xhrGraphql} from './scaphold'
+import {delIn} from '../utils'
+
+export const channelByIdPath       = ['channels', 'byId']
+export const channelIdsPath        = ['channels', 'ids']
 
 exports.defaults = {}
 
 exports.reducers = [
-  on(
-    {type: 'ws/msg/subscription_data', payload: {data: {subscribeToChannel: {value: isDict}}}},
-    (state, {payload: {data: {subscribeToChannel: {value}}}}) => {
-      const channels = scan(state, 'channels', 'viewer', 'allChannels', 'edges')
-      const indexToUpdate = _.findIndex(channels, test({node: {id: value.id}}))
+  on({
+    type: 'ws/msg/subscription_data',
+    payload: {data: {subscribeToChannel: {mutation: 'createChannel'}}}
+  }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => {
+    return pipe(
+      alter(putIn, [...channelByIdPath, node.id], node),
+      alter(putInBy, channelIdsPath, append, node.id)
+    )(state)
+  }),
 
-      const newChannels = [
-        ..._.slice(channels, 0, indexToUpdate),
-        merge(_.nth(channels, indexToUpdate), {node: {...value}}),
-        ..._.slice(channels, indexToUpdate + 1, _.size(channels))
-      ]
+  on({
+    type: 'ws/msg/subscription_data',
+    payload: {data: {subscribeToChannel: {mutation: 'updateChannel'}}}
+  }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => {
+    return alter(putIn, [...channelByIdPath, node.id], node)(state)
+  }),
 
-      return patchIn(state, ['channels', 'viewer', 'allChannels', 'edges'], newChannels)
-    }
-  )
+  on({
+    type: 'ws/msg/subscription_data',
+    payload: {data: {subscribeToChannel: {mutation: 'deleteChannel'}}}
+  }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => {
+    return pipe(
+      alter(delIn, [...channelByIdPath, node.id]),
+      alter(putInBy, channelIdsPath, _.reject, test(node.id))
+    )(state)
+  })
 ]
 
 exports.effects = [
@@ -27,7 +42,11 @@ exports.effects = [
   on({type: 'ws/opened'}, env => {
     xhrGraphql(env, allChannels)
       .done(({body: {data}}) => {
-        env.swap(putIn, ['channels'], data)
+        const channels = _.map(scan(data, 'viewer', 'allChannels', 'edges'), 'node')
+        env.swap(pipe(
+          alter(putIn, channelByIdPath, _.keyBy(channels, 'id')),
+          alter(putIn, channelIdsPath, _.map(channels, 'id'))
+        ))
       })
       .start()
   })
@@ -42,14 +61,19 @@ const allChannels = {
         allChannels (where: $where, orderBy: $orderBy) {
           edges {
             node {
-              id
-              name
-              isPrivate
-              createdAt
+              ...fragmentChannel
             }
           }
         }
       }
+    }
+
+    fragment fragmentChannel on Channel {
+      id
+      name
+      isPrivate
+      createdAt
+      modifiedAt
     }
   `,
   variables: {
@@ -72,13 +96,21 @@ const subscribeToChannel = {
     subscription subscribeToChannel ($filter: ChannelSubscriptionFilter,
       $mutations: [ChannelMutationEvent]!) {
       subscribeToChannel (filter: $filter, mutations: $mutations) {
-        value {
-          id
-          name
-          isPrivate
-          createdAt
+        mutation
+        edge {
+          node {
+            ...fragmentChannel
+          }
         }
       }
+    }
+
+    fragment fragmentChannel on Channel {
+      id
+      name
+      isPrivate
+      createdAt
+      modifiedAt
     }
   `,
   variables: {
@@ -94,10 +126,17 @@ function createChannel ({name, isPrivate}) {
       mutation createChannel ($channel: CreateChannelInput!) {
         createChannel (input: $channel) {
           changedChannel {
-            id
-            name
+            ...fragmentChannel
           }
         }
+      }
+
+      fragment fragmentChannel on Channel {
+        id
+        name
+        isPrivate
+        createdAt
+        modifiedAt
       }
     `,
     variables: {
@@ -108,3 +147,4 @@ function createChannel ({name, isPrivate}) {
     }
   }
 }
+

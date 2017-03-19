@@ -81,7 +81,7 @@ const publicPathnames = [
 
 function maybeRedirectIn (__, env) {
   if (testOr(...publicPathnames)(getIn(env.state, pathnamePath))) {
-    env.send({type: 'route/replace', value: {pathname: '/chats'}})
+    env.send({type: 'route/replace', value: {pathname: '/channels'}})
   }
 }
 
