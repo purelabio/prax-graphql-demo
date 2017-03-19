@@ -1,9 +1,11 @@
 import {defonce, getIn, global, isDict, on, testOr, Watcher,
-  ifelse, validate, isFunction, bind, isNil, scan} from 'prax'
-import {Xhr, eventToResult, xhrSetMultiCallback, jsonDecode} from 'purelib'
+  ifelse} from 'prax'
 import {pathnamePath} from './route'
 import {putThis} from '../utils'
 import Auth0Lock from 'auth0-lock'
+import {xhrGraphql} from './scaphold'
+
+export const scapholdIdPath = ['user', 'scaphold', 'loginUserWithAuth0', 'user', 'id']
 
 const AUTH0_LOCK_CONFIG = {
   clientId: 'fz3A7ALyhUquoHX5Z1YVGn8mj0sTQhwB',
@@ -17,11 +19,11 @@ export function setup (env) {
   })
 
   env.auth0Lock.on('authenticated', auth => {
-    env.send({type: 'auth/authenticated', auth})
+    env.send({type: 'auth/success', auth})
   })
 
   const storedAuth = localStorage.getItem('auth')
-  if (storedAuth) env.send({type: 'auth/authenticated', auth: JSON.parse(storedAuth)})
+  if (storedAuth) env.send({type: 'auth/success', auth: JSON.parse(storedAuth)})
 
   return () => {}
 }
@@ -29,29 +31,29 @@ export function setup (env) {
 exports.defaults = {}
 
 exports.reducers = [
-  on({type: 'auth/authenticated'}, putThis('user', 'auth')),
-  on({type: 'auth/signed-in'}, putThis('user', 'profile')),
+  on({type: 'auth/success'}, putThis('user', 'auth')),
+  on({type: 'auth/profile'}, putThis('user', 'profile')),
   on({type: 'auth/scaphold'}, putThis('user', 'scaphold'))
 ]
 
 exports.effects = [
   on(
-    {type: 'auth/authenticated', auth: isDict},
+    {type: 'auth/success', auth: isDict},
     (__, {auth}) => localStorage.setItem('auth', JSON.stringify(auth))
   ),
 
   on(
-    {type: 'auth/authenticated', auth: isDict},
+    {type: 'auth/success', auth: isDict},
     ({send, auth0Lock}, {auth: {accessToken}}) => {
       auth0Lock.getUserInfo(
         accessToken,
-        (error, profile) => send({type: 'auth/signed-in', profile})
+        (error, profile) => send({type: 'auth/profile', profile})
       )
     }
   ),
 
   on(
-    {type: 'auth/authenticated', auth: isDict},
+    {type: 'auth/success', auth: isDict},
     (env, {auth: {idToken}}) => {
       xhrGraphql(env, loginParams(idToken))
         .done(({body: {data}}) => {
@@ -89,45 +91,6 @@ function maybeRedirectOut (__, env) {
   }
 }
 
-function xhrGraphql(env, body) {
-  const scapholdId = scan(env.state, 'user', 'scaphold', 'loginUserWithAuth0', 'user', 'id')
-  const xhr = Xhr({
-    url: 'https://eu-west-1.api.scaphold.io/graphql/curved-robin',
-    method: 'post',
-    body: JSON.stringify(body),
-    headers: _.omitBy({
-      'Content-Type': 'application/json',
-      'Authorization': scapholdId ? `Bearer ${scapholdId}` : null
-    }, isNil)
-  })
-  xhrSetMultiCallback(xhr, function onXhrDone (event) {
-    xhr.result = parseResult(eventToResult(event))
-  })
-  xhr.done(bind(env.enque, bind(flushXhr, xhr)))
-  xhr.callbacks = []
-  xhr.done = function xhrDone (fun) {
-    validate(isFunction, fun)
-    xhr.callbacks.push(fun)
-    return xhr
-  }
-  return xhr
-}
-
-function flushXhr (xhr) {
-  try {
-    while (xhr.callbacks.length) xhr.callbacks.shift().call(xhr, xhr.result)
-  }
-  catch (err) {
-    flushXhr(xhr)
-    throw err
-  }
-}
-
-function parseResult (result) {
-  const body = jsonDecode(result.xhr.responseText)
-  return {...result, body}
-}
-
 function loginParams (idToken) {
   return {
     operationName: 'loginUser',
@@ -156,5 +119,3 @@ function loginParams (idToken) {
     }
   }
 }
-
-

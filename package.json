@@ -75,6 +75,7 @@
     "stylebox": "0.0.8",
     "through2": "2.0.3",
     "transform-loader": "0.2.4",
+    "webbs": "0.0.3",
     "webpack": "2.2.1",
     "webpack-dev-middleware": "1.10.1",
     "webpack-hot-middleware": "2.17.0",

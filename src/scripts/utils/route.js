@@ -12,3 +12,15 @@ export function routeQueryItem (key) {
   return getf('route', 'query', key)
 }
 
+export function appendQuery (url, query) {
+  const section = stringifyQuery(query)
+  return !section ? url : `${url}${_.includes(url, '?') ? '&' : '?'}${section}`
+}
+
+export function stringifyQuery (query) {
+  return _.map(_.omitBy(query, _.isNil), encodePair).join('&')
+}
+
+function encodePair (value, key) {
+  return encodeURIComponent(key) + '=' + value
+}
