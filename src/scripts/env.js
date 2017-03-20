@@ -26,6 +26,8 @@ function maybeLog (msg) {
 export function reinit (features, env, onDeinit) {
   const {init} = fuseModules(features)
 
+  env.reducers = extract(['reducers'], features)
+
   env.effects = extract(['effects'], features)
 
   env.watchers = extract(['watchers'], features)
