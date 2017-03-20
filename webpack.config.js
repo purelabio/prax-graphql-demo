@@ -1,14 +1,13 @@
 'use strict'
 
 const pt = require('path')
-const {realpathSync} = require('fs')
+const fs = require('fs')
 const webpack = require('webpack')
 const prod = process.env.NODE_ENV === 'production'
 
 module.exports = {
   entry: {
     main: pt.resolve('src/scripts/main.js'),
-    embed: pt.resolve('src/scripts/embed.js'),
   },
 
   output: {
@@ -23,8 +22,8 @@ module.exports = {
       {
         test: /\.js$/,
         include: [
-          realpathSync('src/scripts'),
-          realpathSync('node_modules/purelib/src/js'),
+          fs.realpathSync('src/scripts'),
+          fs.realpathSync('node_modules/purelib/src/js'),
         ],
         use: ['babel-loader'],
       },
@@ -41,7 +40,7 @@ module.exports = {
 
   resolve: {
     alias: {
-      purelib: realpathSync('node_modules/purelib/src/js'),
+      purelib: fs.realpathSync('node_modules/purelib/src/js'),
     },
   },
 
@@ -49,6 +48,7 @@ module.exports = {
     new webpack.ProvidePlugin({
       _: 'lodash',
       React: 'react',
+      createElement: pt.resolve('src/scripts/react-hack.js'),
     }),
     ...(prod ? [
       new webpack.optimize.UglifyJsPlugin({

@@ -23,7 +23,7 @@ const src = {
   html: 'src/html/**/*',
   scripts: 'src/scripts/**/*.js',
   styleGlobs: ['src/styles/**/*.scss'],
-  styleEntryFiles: ['src/styles/main.scss', 'src/styles/embed.scss'],
+  styleEntryFiles: ['src/styles/main.scss'],
   imagesRaster: ['src/images/**/*.{jpg,png,gif}'],
   imagesVector: ['src/images/**/*.svg'],
 }
@@ -39,7 +39,7 @@ const prod = process.env.NODE_ENV === 'production'
 
 const deploySettings = {
   analytics: prod,
-  developmentMode: !prod,
+  devMode: !prod,
   errorTracking: prod
 }
 

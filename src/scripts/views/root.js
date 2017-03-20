@@ -1,21 +1,28 @@
 export function Root ({children}) {
   return (
     <div className='stretch-to-viewport-v'>
-      <div className='flex-1 container col-start-stretch'>
+      <div className='flex-1 col-start-stretch'>
         {children}
       </div>
     </div>
   )
 }
 
-Root.componentWillMount = function () {
-  const {location, ...props} = this.props
-  // react-router stupidly marks first transition as 'REPLACE'
-  signalRouteTransition.call(this, {location: {...location, action: 'PUSH'}, ...props})
-}
+_.assign(Root, {
+  componentWillMount () {
+    const {location, ...props} = this.props
 
-Root.componentWillReceiveProps = signalRouteTransition
+    if (!location) {
+      throw Error(`Expected to receive route handler props, got nothing`)
+    }
+
+    // react-router stupidly marks first transition as 'REPLACE'
+    signalRouteTransition.call(this, {...props, location: {...location, action: 'PUSH'}})
+  },
+
+  componentWillReceiveProps: signalRouteTransition,
+})
 
 function signalRouteTransition ({children: __, ...props}) {
-  this.env.send({type: 'route', value: {...props.location, params: props.params, nav: props}})
+  this.context.root.send({type: 'nav', value: props})
 }

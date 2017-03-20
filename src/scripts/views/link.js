@@ -12,7 +12,7 @@ export function Link (
   if (trackActive) {
     // Track route change and set active class. Disabled by default due to the
     // performance cost in the `react-router` link implementation.
-    read('route')
+    read('nav', 'location')
     props = {activeClassName: activeClassName || 'active', ...props}
   }
 
@@ -37,6 +37,10 @@ const isIndexLink = testOr('', '/', {pathname: ''}, {pathname: '/'})
 
 export function RelativeLink ({to, ...props}, {read}) {
   const {pathname, query, hash} = linkToDict(to)
-  const url = {pathname: strJoin('/', [read('route', 'pathname'), pathname]),  query, hash}
-  return <Link to={url} {...props}/>
+  const location = {
+    pathname: strJoin('/', [read('nav', 'location', 'pathname'), pathname]),
+    query,
+    hash,
+  }
+  return <Link to={location} {...props}/>
 }

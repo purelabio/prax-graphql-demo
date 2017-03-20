@@ -1,40 +1,46 @@
-import {pipe, scan, isNil, validate, isFunction, bind, Watcher} from 'prax'
+import {scan, pipe, isNil, validate, isFunction, bind, Watcher} from 'prax'
 import {Xhr, eventToResult, xhrSetMultiCallback, jsonDecode} from 'purelib'
 import {Wsocket} from 'webbs'
-import {scapholdIdPath} from './auth'
+import {scapholdUserIdPath} from './auth'
 import {getf} from '../utils'
 
 const scapholdUrl = 'eu-west-1.api.scaphold.io/graphql/curved-robin'
 
-exports.defaults = {}
+export function preinit (root, onDeinit) {
+  root.ScapholdXhr = bind(ScapholdXhr, root)
 
-exports.reducers = []
+  onDeinit(bind(deinitWs, root))
 
-exports.effects = []
+  return {
+    state: {},
 
-exports.watchers = [
-  Watcher(initWsOnAuth)
-]
+    watchers: [
+      Watcher(read => {
+        reinitWs(root, read('auth', 'meta', 'idToken'))
+      }),
+    ],
+  }
+}
 
 /**
  * Graphql Request — Response
  */
 
-export function xhrGraphql(env, body) {
-  const scapholdId = scan(env.state, scapholdIdPath)
+export function ScapholdXhr (root, body) {
+  const scapholdUserId = scan(root.store.state, scapholdUserIdPath)
   const xhr = Xhr({
     url: `https://${scapholdUrl}`,
     method: 'post',
     body: JSON.stringify(body),
     headers: _.omitBy({
       'Content-Type': 'application/json',
-      Authorization: scapholdId ? `Bearer ${scapholdId}` : null
+      Authorization: scapholdUserId ? `Bearer ${scapholdUserId}` : null
     }, isNil)
   })
   xhrSetMultiCallback(xhr, function onXhrDone (event) {
     xhr.result = parseResult(eventToResult(event))
   })
-  xhr.done(bind(env.enque, bind(flushXhr, xhr)))
+  xhr.done(bind(root.que.push, bind(flushXhr, xhr)))
   xhr.callbacks = []
   xhr.done = function xhrDone (fun) {
     validate(isFunction, fun)
@@ -63,37 +69,41 @@ function parseResult (result) {
  * Ws utils
  */
 
-function initWsOnAuth (read, env) {
-  if (env.ws) env.ws.close()
+function reinitWs (root, idToken) {
+  deinitWs(root)
 
-  const idToken = read('user', 'auth', 'idToken')
   if (!idToken) return
 
-  const ws = env.ws = Wsocket(`wss://${scapholdUrl}`, ['graphql-subscriptions'])
+  const ws = root.ws = Wsocket(`wss://${scapholdUrl}`, ['graphql-subscriptions'])
 
   ws.open()
 
   ws.onopen = function onopen () {
     console.info('Socket connected:', ws)
     ws._openedAt = Date.now()
-    env.send({type: 'ws/opened'})
+    root.send({type: 'ws/opened'})
   }
 
   ws.onclose = function onclose (event) {
     const delta = Date.now() - ws._openedAt
     console.info(`Socket closed after ${delta}, reconnecting:`, event)
-    env.send({type: 'ws/closed'})
+    root.send({type: 'ws/closed'})
   }
 
   ws.onerror = pipe(JSON.parse, err => {
     console.error(err)
-    env.send({type: 'ws/err', err})
+    root.send({type: 'ws/err', err})
   })
 
   ws.onmessage = pipe(getf('data'), JSON.parse, ({type, ...msg}) => {
     console.info('Socket msg:', type, msg)
-    env.send({type: `ws/msg/${type}`, ...msg})
+    root.send({type: `ws/msg/${type}`, ...msg})
   })
+}
 
-  ws.sendJSON = pipe(JSON.stringify, ws.send)
+function deinitWs (root) {
+  if (root.ws) {
+    root.ws.close()
+    root.ws = null
+  }
 }

@@ -1,58 +1,68 @@
-import {on, putIn, scan, pipe, alter, putInBy, append, not, test} from 'prax'
-import {xhrGraphql} from './scaphold'
-import {delIn} from '../utils'
+import {on, putIn, scan, pipe, alter, putInBy, append, test} from 'prax'
+import {ScapholdXhr} from './scaphold'
+import {delIn, funnel} from '../utils'
 
 export const channelByIdPath       = ['channels', 'byId']
 export const channelIdsPath        = ['channels', 'ids']
 
-exports.defaults = {}
+export function preinit () {
+  return {
+    state: {
+      channels: void {
+        byId: {},
+        ids: [],
+      },
+    },
 
-exports.reducers = [
-  on({
-    type: 'ws/msg/subscription_data',
-    payload: {data: {subscribeToChannel: {mutation: 'createChannel'}}}
-  }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => {
-    return pipe(
-      alter(putIn, [...channelByIdPath, node.id], node),
-      alter(putInBy, channelIdsPath, append, node.id)
-    )(state)
-  }),
+    reducers: [
+      on({
+        type: 'ws/msg/subscription_data',
+        payload: {data: {subscribeToChannel: {mutation: 'createChannel'}}}
+      }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => (
+        funnel(state, [
+          alter(putIn, [...channelByIdPath, node.id], node),
+          alter(putInBy, channelIdsPath, append, node.id)
+        ])
+      )),
 
-  on({
-    type: 'ws/msg/subscription_data',
-    payload: {data: {subscribeToChannel: {mutation: 'updateChannel'}}}
-  }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => {
-    return alter(putIn, [...channelByIdPath, node.id], node)(state)
-  }),
+      on({
+        type: 'ws/msg/subscription_data',
+        payload: {data: {subscribeToChannel: {mutation: 'updateChannel'}}}
+      }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => (
+        putIn(state, [...channelByIdPath, node.id], node)
+      )),
 
-  on({
-    type: 'ws/msg/subscription_data',
-    payload: {data: {subscribeToChannel: {mutation: 'deleteChannel'}}}
-  }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => {
-    return pipe(
-      alter(delIn, [...channelByIdPath, node.id]),
-      alter(putInBy, channelIdsPath, _.reject, test(node.id))
-    )(state)
-  })
-]
+      on({
+        type: 'ws/msg/subscription_data',
+        payload: {data: {subscribeToChannel: {mutation: 'deleteChannel'}}}
+      }, (state, {payload: {data: {subscribeToChannel: {edge: {node}}}}}) => (
+        funnel(state, [
+          alter(delIn, [...channelByIdPath, node.id]),
+          alter(putInBy, channelIdsPath, _.reject, test(node.id))
+        ])
+      )),
+    ],
 
-exports.effects = [
-  on({type: 'ws/opened'}, ({ws}) => ws.sendJSON(subscribeToChannel)),
+    effects: [
+      on({type: 'ws/opened'}, ({ws}) => {
+        console.info('opened ws')
+        ws.sendJSON(subscribeToChannel)
+      }),
 
-  on({type: 'ws/opened'}, env => {
-    xhrGraphql(env, allChannels)
-      .done(({body: {data}}) => {
-        const channels = _.map(scan(data, 'viewer', 'allChannels', 'edges'), 'node')
-        env.swap(pipe(
-          alter(putIn, channelByIdPath, _.keyBy(channels, 'id')),
-          alter(putIn, channelIdsPath, _.map(channels, 'id'))
-        ))
+      on({type: 'ws/opened'}, root => {
+        ScapholdXhr(root, allChannels)
+          .done(({body: {data}}) => {
+            const channels = _.map(scan(data, 'viewer', 'allChannels', 'edges'), 'node')
+            root.store.swap(pipe(
+              alter(putIn, channelByIdPath, _.keyBy(channels, 'id')),
+              alter(putIn, channelIdsPath, _.map(channels, 'id'))
+            ))
+          })
+          .start()
       })
-      .start()
-  })
-]
-
-exports.watchers = []
+    ]
+  }
+}
 
 const allChannels = {
   query: `

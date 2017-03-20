@@ -1,12 +1,12 @@
 import {Button} from './misc'
 
-export function Auth0SignIn (__, {env}) {
+export function Auth0SignIn (__, {root: {auth0Lock}}) {
   return (
     <div className='padding-2'>
       <div className='container col-start-center children-margin-0x5-v'>
         <div className='width-400px padding-2 rounded'>
-          <Button className='button-size-l button-gray width-100p font-3'
-                  onClick={() => env.auth0Lock.show()} >
+          <Button className='button-size-l button-gray width-100p font-3 cursor-pointer'
+                  onClick={() => auth0Lock.show()} >
             Sign In
           </Button>
         </div>

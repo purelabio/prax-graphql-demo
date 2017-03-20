@@ -1,362 +1,68 @@
-.checkbox {
-  display: inline-flex;
-  width: 1.25rem;
-  height: 1.25rem;
-  @extend .relative;
-  @extend .bg-white;
-  @extend .rounded;
-  @extend .shadow-in-15;
-  @extend .overflow-hidden;
-  @extend .row-center-center;
-  @extend .cursor-pointer;
-
-  span {
-    display: block;
-    width: 0.75rem;
-    height: 0.75rem;
-    @extend .rounded;
-  }
-
-  input {
-    left: -999rem;
-    @extend .abs;
-  }
-
-  input:checked + span {
-    @extend .bg-orange;
-  }
-
-  &[disabled] {
-    @extend .no-pointer-styles;
-    @extend .bg-04;
-  }
+html {
+  @include font-base($family: $font-family);
+  color: $color-fg;
 }
 
-.input-white {
-  height: 2.5rem;
-  @extend .font-2;
-  @extend .rounded;
-  @extend .color-white;
-  @extend .shadow-in-white;
-  @extend .padding-1-h;
-  @include placeholder($color-placeholder-light);
-
-  &:focus {
-    box-shadow: inset 0 0 0 2px $color-white;
-  }
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
 }
 
-.input {
-  @extend .font-2;
-  @extend .rounded;
-  @extend .padding-0x5;
+@include flex-containers;
 
-  // Prevents accidental overflow in `td`.
-  td &, .display-td & {width: 100%;}
-  max-width: 100%;
+@include flex-childs;
+
+@include space(0, 8);
+
+.abs {
+  @include position(absolute);
 }
 
-.input-size-s {
-  height: 2rem;
-  padding: 0.25rem 0.5rem;
+.fix {
+  @include position(fixed);
 }
 
-.input-size-m {
-  height: 2rem;
-  // Feels like waste of space
-  // @extend .padding-1-h;
+.width {
+  @include sizing(width, 0, 16);
 }
 
-.input-size-l {
-  height: 2.5rem;
-  @extend .padding-1-h;
+.rounded {
+  @include rounding($radius-default);
 }
 
-.inp-s {
-  @extend .input;
-  @extend .input-size-s;
+@include layout(
+  $width-min-screen: $width-min-screen,
+  $width-max-screen: $width-max-screen,
+  $width-md:         $width-md
+);
+
+@include spinner($color-fg: $color-blue);
+
+@include tooltip(
+  $z-index:       $z-index-tooltip,
+  $color-bg:      $color-black-87,
+  $color-fg:      $color-white,
+  $color-bg-warn: $color-red
+);
+
+.text-uppercase {
+  text-transform: uppercase;
 }
 
-.inp-m {
-  @extend .input;
-  @extend .input-size-m;
-}
-
-.inp-l {
-  @extend .input;
-  @extend .input-size-l;
-}
-
-.input-inline {
-  @extend .input;
-  padding: 0 0.25rem;
-}
-
-.transition-all-short {
-  transition: all 0.1s $transition-function;
-}
-
-.transition-none {
-  transition: none;
-}
-
-.input-flush:not(:hover):not(:focus) {
-  padding: 0;
-  box-shadow: none;
-  &[type=number] {@extend .input-number-plain;}
-}
-
-.input-number-plain {
-  &::-webkit-outer-spin-button {-webkit-appearance: none;}
-  &::-webkit-inner-spin-button {-webkit-appearance: none;}
-}
-
-.input-wide {
-  @extend .width-100p;
-  // WTF magick number
-  max-width: 24rem;
-}
-
-// Redundant? TODO deduplicate with .table-default
-.table {
-  @extend .table-default;
-  tr {@extend .tr-default;}
-  td {@extend .td-default;}
-}
-
-.table-fixed {
-  table-layout: fixed;
-}
-
-.display-table {
-  display: table;
-}
-
-.display-thead {
-  display: table-header-group;
-}
-
-.display-tbody {
-  display: table-row-group;
-}
-
-.display-tr {
-  display: table-row;
-}
-
-.display-th, .display-td {
-  display: table-cell;
-}
-
-// Redundant? TODO deduplicate with .table
-.table-default {
-  @extend .table-fixed;
-  @extend .width-100p;
-  @extend .align-left;
-}
-
-.tr-default {
-  @extend .children-padding-0x5-v;
-  @extend .lg-children-padding-1-h;
-  @extend .md-children-padding-1-h;
-  @extend .sm-children-padding-0x5-h;
-}
-
-.td-default {
-  @extend .valign-top;
-}
-
-.writing-tb-rl {
-  writing-mode: tb-rl;
-}
-
-.children-even-bg-04 > :nth-child(even) {
-  @extend .bg-04;
-}
-
-.children-odd-bg-04 > :nth-child(odd) {
-  @extend .bg-04;
-}
-
-.compressed-shadows {
-  @extend .relative;
-}
-
-.compressed-shadows::before {
-  @extend .abs-t-r;
-  @extend .abs-b-r;
-  @extend .width-2;
-  content: '';
-  box-shadow: inset -1.5rem 0 1rem $color-white;
-}
-
-.compressed-shadows::after {
-  @extend .abs-b-l;
-  @extend .abs-b-r;
-  content: '';
-  height: 2rem;
-  box-shadow: inset 0 -1.5rem 1rem $color-white;
-}
-
-.breadcrumbs {
-  @extend .row-start-center;
-}
-
-.breadcrumbs > ::after {
-  @extend .margin-0x5-h;
-  content: '/';
-}
-
-.table-padding-0x5 th,
-.table-padding-0x5 td,
-.table-padding-0x5 .th,
-.table-padding-0x5 .td {
-  @extend .padding-0x5;
-}
-
-%bg {
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-.bg-cover {
-  @extend %bg;
-  background-size: cover;
-}
-
-.bg-contain {
-  @extend %bg;
-  background-size: contain;
-}
-
-.bg-auto {
-  @extend %bg;
-  background-size: auto;
-}
-
-.overlay {
-  @extend .fix-fit;
-  z-index: $z-index-overlay;
-}
-
-.z-index-overlay {
-  z-index: $z-index-overlay;
-}
-
-.z-index-above-overlay {
-  z-index: $z-index-overlay + 1;
-}
-
-.shadow-drop {
-  box-shadow: 1px 1px 2px 1px $color-15;
-}
-
-.shadow-drop-thick {
-  box-shadow: 1px 1px 4px 2px $color-15;
-}
-
-.children-shadow-in-15-b > * {
-  @extend .shadow-in-15-b;
-}
-
-.children-padding-0x5 > * {
-  @extend .padding-0x5;
-}
-
-.children-padding-0x5-v > * {
-  @extend .padding-0x5-v;
-}
-
-.children-padding-1-h > * {
-  @extend .padding-1-h;
-}
-
-.tab {
-  @extend .row-start-center;
-  @extend .padding-0x5;
-}
-
-.tab-lg {
-  @extend .padding-1-h;
-  @extend .padding-0x75-t;
-  @extend .padding-0x5-b;
-  @extend .md-padding-0x5-h;
-  @extend .sm-padding-0x5-h;
-  @extend .interact-54;
-  @extend .font-1;
-  min-width: 5rem;
-}
-.tab-lg.active {
-  @extend .bg-04;
-}
-
-.mark-l      {@include mark-l;}
-.mark-b      {@include mark-b;}
-.busy-mark-l {@include busy {@extend .mark-l;}}
-.busy-mark-b {@include busy {@extend .mark-b;}}
-
-.transition-all {
-  transition: all $transition-duration $transition-function;
+.text-center {
+  text-align: center;
 }
 
 .cursor-pointer {
   cursor: pointer;
 }
 
-.cursor-zoom-in {
-  cursor: zoom-in;
+a {
+  color: $color-link;
+  &:hover {
+    color: darken($color-link, 20%);
+  }
 }
 
-.cursor-help {
-  cursor: help;
-}
-
-.opacity-02 {
-  opacity: 0.2;
-}
-
-.no-pointer-styles {
-  pointer-events: none;
-}
-
-.children-margin-0x5em-h > :not(:first-child) {
-  margin-left: 0.5em;
-}
-
-.rotate-90 {
-  transform: rotate(90deg);
-}
-
-.rotate--90 {
-  transform: rotate(-90deg);
-}
-
-.flip-x {
-  transform: scaleX(-1);
-}
-
-// For use together with `.text-ellipsis` on elements that contain something
-// focusable.
-.padding-focus {
-  padding: $focus-indicator-thickness;
-}
-
-.square-1 {
-  width: 1rem;
-  height: 1rem;
-}
-
-.square-min-1 {
-  min-width: 1rem;
-  min-height: 1rem;
-}
-
-.spacer-1 {
-  @extend .block;
-  @extend .square-min-1;
-}
-
-.spacer-flex-1 {
-  @extend .block;
-  @extend .flex-1;
+.font-semibold {
+  font-weight: 500;
 }
