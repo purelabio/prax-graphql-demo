@@ -1,7 +1,7 @@
 import {each} from 'lodash/fp'
-import {defonce, getIn, putIn, putInBy, testOr, isDict, on, Watcher} from 'prax'
+import {defonce, getIn, putIn, putInBy, testOr, isDict, on} from 'prax'
 import {pathnamePath} from './nav'
-import {jsonDecode, jsonEncode, xhrDestroy} from '../utils'
+import {jsonDecode, jsonEncode, xhrDestroy, Watcher} from '../utils'
 import Auth0Lock from 'auth0-lock'
 import {ScapholdXhr} from './scaphold'
 
@@ -16,104 +16,102 @@ export const scapholdMetaPath    = ['auth', 'scapholdMeta']
 export const authSyncPath        = ['auth', 'sync']
 export const scapholdUserIdPath  = ['auth', 'scapholdMeta', 'loginUserWithAuth0', 'user', 'id']
 
-export function preinit (root, _onDeinit) {
-  return {
-    state: {
-      auth: void {
-        meta: null,
-        user: null,
-        scapholdMeta: null,
-        sync: {
-          user: null,
-          scapholdUser: null,
-        },
-      },
+export const defaultState = {
+  auth: void {
+    meta: null,
+    user: null,
+    scapholdMeta: null,
+    sync: {
+      user: null,
+      scapholdUser: null,
     },
-
-    effects: [
-      on({type: 'auth/meta', value: isDict}, ({store, send, auth0Lock}, {value}) => {
-        console.info('auth meta:', value)
-        localStorage.setItem('authMeta', jsonEncode(value))
-        store.swap(putIn, authMetaPath, value)
-      }),
-
-      on({type: 'auth/meta', value: isDict}, ({store, send, auth0Lock}, {value}) => {
-        const path = [...authSyncPath, 'meta']
-        const oldReq = getIn(store.state, path)
-        if (oldReq) oldReq.abort()
-
-        const req = auth0Lock.getUserInfo(
-          value.accessToken,
-          (err, value) => {
-            store.swap(putIn, path, null)
-            if (err) {
-              console.warn(err)
-            }
-            else {
-              send({type: 'auth/user', value})
-            }
-          }
-        )
-
-        store.swap(putIn, path, req)
-      }),
-
-      on({type: 'auth/meta', value: isDict}, ({store, send}, {value: {idToken}}) => {
-        const path = [...authSyncPath, 'scapholdMeta']
-        const oldReq = getIn(store.state, path)
-        if (oldReq) oldReq.abort()
-
-        const req = ScapholdXhr(root, loginParams(idToken))
-          .done(result => {
-            store.swap(putIn, path, null)
-            if (result.ok) {
-              send({type: 'auth/scaphold-meta', value: result.body.data})
-            }
-          })
-          .start()
-
-        store.swap(putIn, path, req)
-      }),
-
-      on({type: 'auth/user'}, ({store}, {value}) => {
-        console.info('user info:', value)
-        store.swap(putIn, userPath, value)
-      }),
-
-      on({type: 'auth/scaphold-meta'}, ({store}, {value}) => {
-        console.info('scaphold auth info:', value)
-        store.swap(putIn, scapholdMetaPath, value)
-      }),
-
-      on({type: 'auth/out'}, ({store}) => {
-        store.swap(putInBy, authSyncPath, each(xhrDestroy))
-        store.swap(putIn, ['auth'], null)
-      }),
-    ],
-
-    watchers: [
-      Watcher(read => {
-        const user = read(...userPath)
-        const pathname = read(...pathnamePath)
-        if (user && testOr(...publicPathnames)(pathname)) {
-          root.send({type: 'nav/replace', value: {pathname: '/channels'}})
-        }
-        else if (!user && !testOr(...publicPathnames)(pathname)) {
-          // root.send({type: 'nav/replace', value: {pathname: '/'}})
-        }
-      }),
-    ]
-  }
+  },
 }
 
-export function init (root, onDeinit) {
-  const auth0Lock = defonce(root, ['auth0Lock'], function initAuth0Lock () {
+export const effects = [
+  on({type: 'auth/meta', value: isDict}, ({store, send, auth0Lock}, {value}) => {
+    console.info('auth meta:', value)
+    localStorage.setItem('authMeta', jsonEncode(value))
+    store.swap(putIn, authMetaPath, value)
+  }),
+
+  on({type: 'auth/meta', value: isDict}, ({store, send, auth0Lock}, {value}) => {
+    const path = [...authSyncPath, 'meta']
+    const oldReq = getIn(store.state, path)
+    if (oldReq) oldReq.abort()
+
+    const req = auth0Lock.getUserInfo(
+      value.accessToken,
+      (err, value) => {
+        store.swap(putIn, path, null)
+        if (err) {
+          console.warn(err)
+        }
+        else {
+          send({type: 'auth/user', value})
+        }
+      }
+    )
+
+    store.swap(putIn, path, req)
+  }),
+
+  on({type: 'auth/meta', value: isDict}, (env, {value: {idToken}}) => {
+    const {store, send} = env
+    const path = [...authSyncPath, 'scapholdMeta']
+
+    const oldReq = getIn(store.state, path)
+    if (oldReq) oldReq.abort()
+
+    const req = ScapholdXhr(env, loginParams(idToken))
+      .done(result => {
+        store.swap(putIn, path, null)
+        if (result.ok) {
+          send({type: 'auth/scaphold-meta', value: result.body.data})
+        }
+      })
+      .start()
+
+    store.swap(putIn, path, req)
+  }),
+
+  on({type: 'auth/user'}, ({store}, {value}) => {
+    console.info('user info:', value)
+    store.swap(putIn, userPath, value)
+  }),
+
+  on({type: 'auth/scaphold-meta'}, ({store}, {value}) => {
+    console.info('scaphold auth info:', value)
+    store.swap(putIn, scapholdMetaPath, value)
+  }),
+
+  on({type: 'auth/out'}, ({store}) => {
+    store.swap(putInBy, authSyncPath, each(xhrDestroy))
+    store.swap(putIn, ['auth'], null)
+  }),
+]
+
+export const watchers = [
+  Watcher((env, read) => {
+    const user = read(...userPath)
+    const pathname = read(...pathnamePath)
+    if (user && testOr(...publicPathnames)(pathname)) {
+      env.send({type: 'nav/replace', value: {pathname: '/channels'}})
+    }
+    else if (!user && !testOr(...publicPathnames)(pathname)) {
+      // env.send({type: 'nav/replace', value: {pathname: '/'}})
+    }
+  }),
+]
+
+export function init (env, onDeinit) {
+  const auth0Lock = defonce(env, ['auth0Lock'], function initAuth0Lock () {
     const {clientId, domain} = AUTH0_LOCK_CONFIG
     return new Auth0Lock(clientId, domain, {})
   })
 
   function authed (authMeta) {
-    root.send({type: 'auth/meta', value: authMeta})
+    env.send({type: 'auth/meta', value: authMeta})
   }
 
   auth0Lock.on('authenticated', authed)
@@ -124,7 +122,7 @@ export function init (root, onDeinit) {
 
   const meta = jsonDecode(localStorage.getItem('authMeta'))
 
-  if (meta) root.send({type: 'auth/meta', value: meta})
+  if (meta) env.send({type: 'auth/meta', value: meta})
 }
 
 const publicPathnames = [

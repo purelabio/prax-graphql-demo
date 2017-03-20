@@ -20,9 +20,9 @@ const app = window.app || (window.app = {})
 
 const lifecycler = app.lifecycler || (app.lifecycler = Lifecycler())
 
-const {root, reinit} = require('./root')
+const {env, reinit} = require('./env')
 
-lifecycler.reinit(root, bind(reinit, require('./features').index))
+lifecycler.reinit(env, bind(reinit, require('./features').index))
 
 /**
  * REPL

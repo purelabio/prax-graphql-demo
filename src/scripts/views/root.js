@@ -24,5 +24,5 @@ _.assign(Root, {
 })
 
 function signalRouteTransition ({children: __, ...props}) {
-  this.context.root.send({type: 'nav', value: props})
+  this.context.env.send({type: 'nav', value: props})
 }

@@ -1,12 +1,12 @@
 const {pipe, hackClassBy} = require('prax')
 const {cachingTypeTransform, coerceToComponentClass,
   atomComponentProps, safeRenderingComponentProps} = require('prax/react')
-const {root} = require('./root')
+const {env} = require('./env')
 
 const transformType = cachingTypeTransform(pipe(
   coerceToComponentClass,
 
-  hackClassBy(atomComponentProps(root.store, {root})),
+  hackClassBy(atomComponentProps(env.store, {env})),
 
   hackClassBy(safeRenderingComponentProps),
 ))

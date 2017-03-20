@@ -8,45 +8,41 @@ export const navPath           = ['nav']
 export const locationPath      = ['nav', 'location']
 export const pathnamePath      = ['nav', 'location', 'pathname']
 
-export function preinit (_root, _onDeinit) {
-  return {
-    state: {
-      nav: null,
-    },
-
-    effects: on({type: /nav/}, seq(
-      on({type: 'nav'}, ({store}, {value: {location, ...nav}}) => {
-        store.swap(putIn, ['nav'], {...nav, location: parseLocation(location)})
-      }),
-
-      on({type: 'nav/push'}, ({store: {state}}, {value}) => {
-        if (value !== relativeHref(getIn(state, locationPath))) journal.push(value)
-      }),
-
-      on({type: 'nav/replace'}, ({store: {state}}, {value}) => {
-        if (value !== relativeHref(getIn(state, locationPath))) journal.replace(value)
-      }),
-
-      on({type: 'nav/query/push'}, ({store: {state}}, {value}) => {
-        journal.queryPush(getIn(state, locationPath), value)
-      }),
-
-      on({type: 'nav/query/replace'}, ({store: {state}}, {value}) => {
-        journal.queryReplace(getIn(state, locationPath), value)
-      }),
-
-      on({type: 'nav/query/key-push'}, ({store: {state}}, {key, value}) => {
-        journal.queryKeyPush(getIn(state, locationPath), key, value)
-      }),
-
-      on({type: 'nav/query/key-replace'}, ({store: {state}}, {key, value}) => {
-        journal.queryKeyReplace(getIn(state, locationPath), key, value)
-      }),
-
-      on({type: 'nav'}, forceLayoutHeight),
-    )),
-  }
+export const defaultState = {
+  nav: null,
 }
+
+export const effects = on({type: /nav/}, seq(
+  on({type: 'nav'}, ({store}, {value: {location, ...nav}}) => {
+    store.swap(putIn, ['nav'], {...nav, location: parseLocation(location)})
+  }),
+
+  on({type: 'nav/push'}, ({store: {state}}, {value}) => {
+    if (value !== relativeHref(getIn(state, locationPath))) journal.push(value)
+  }),
+
+  on({type: 'nav/replace'}, ({store: {state}}, {value}) => {
+    if (value !== relativeHref(getIn(state, locationPath))) journal.replace(value)
+  }),
+
+  on({type: 'nav/query/push'}, ({store: {state}}, {value}) => {
+    journal.queryPush(getIn(state, locationPath), value)
+  }),
+
+  on({type: 'nav/query/replace'}, ({store: {state}}, {value}) => {
+    journal.queryReplace(getIn(state, locationPath), value)
+  }),
+
+  on({type: 'nav/query/key-push'}, ({store: {state}}, {key, value}) => {
+    journal.queryKeyPush(getIn(state, locationPath), key, value)
+  }),
+
+  on({type: 'nav/query/key-replace'}, ({store: {state}}, {key, value}) => {
+    journal.queryKeyReplace(getIn(state, locationPath), key, value)
+  }),
+
+  on({type: 'nav'}, forceLayoutHeight),
+))
 
 function relativeHref ({href, origin, basename}) {
   const host = trimSlashes(origin) + trimSlashes(basename)

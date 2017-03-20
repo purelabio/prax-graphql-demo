@@ -1,6 +1,6 @@
 import {Button} from './misc'
 
-export function Auth0SignIn (__, {root: {auth0Lock}}) {
+export function Auth0SignIn (__, {env: {auth0Lock}}) {
   return (
     <div className='padding-2'>
       <div className='container col-start-center children-margin-0x5-v'>
