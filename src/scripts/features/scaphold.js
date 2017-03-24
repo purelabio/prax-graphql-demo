@@ -1,5 +1,5 @@
-import {pipe, bind} from 'prax'
-import {Xhttp} from 'xhttp'
+import {pipe, bind, RenderQue} from 'prax'
+import {Xhr, eventToResult, xhrFlushCallbacks} from 'xhttp'
 import {Webbs} from 'webbs'
 import {scapholdUserIdPath} from './auth'
 import {getf, Watcher} from '../utils'
@@ -24,7 +24,7 @@ export function init (env, onDeinit) {
 
 export function ScapholdXhr (env, body) {
   const scapholdUserId = env.store.read(scapholdUserIdPath)
-  return Xhttp({
+  return Xhr({
     url: `https://${scapholdUrl}`,
     method: 'post',
     headers: {
@@ -33,7 +33,17 @@ export function ScapholdXhr (env, body) {
       ...(scapholdUserId ? {Authorization: `Bearer ${scapholdUserId}`} : null),
     },
     body,
-  })
+  }, onXhrDone)
+}
+
+function onXhrDone (event) {
+  this.result = eventToResult(event)
+  RenderQue.globalRenderQue.dam()
+  try {
+    xhrFlushCallbacks(this, this.result)
+  } finally {
+    RenderQue.globalRenderQue.flush()
+  }
 }
 
 /**
