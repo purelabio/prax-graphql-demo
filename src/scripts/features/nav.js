@@ -18,11 +18,13 @@ export const effects = on({type: /nav/}, seq(
   }),
 
   on({type: 'nav/push'}, ({store: {state}}, {value}) => {
-    if (value !== relativeHref(getIn(state, locationPath))) journal.push(value)
+    const location = getIn(state, locationPath)
+    if (!location || value !== relativeHref(location)) journal.push(value)
   }),
 
   on({type: 'nav/replace'}, ({store: {state}}, {value}) => {
-    if (value !== relativeHref(getIn(state, locationPath))) journal.replace(value)
+    const location = getIn(state, locationPath)
+    if (!location || value !== relativeHref(location)) journal.replace(value)
   }),
 
   on({type: 'nav/query/push'}, ({store: {state}}, {value}) => {

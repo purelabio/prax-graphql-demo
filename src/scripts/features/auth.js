@@ -10,6 +10,11 @@ const AUTH0_LOCK_CONFIG = {
   domain: 'purelabio.auth0.com',
 }
 
+// This must be passed to `.show()`. If this is not specified, redirect breaks
+// when authing from any non-root page. If this is passed to the constructor,
+// authentication breaks completely.
+export const auth0ShowConfig = {auth: {redirectUrl: `${window.location.origin}`}}
+
 export const authMetaPath        = ['auth', 'meta']
 export const userPath            = ['auth', 'user']
 export const scapholdMetaPath    = ['auth', 'scapholdMeta']
@@ -64,7 +69,7 @@ export const effects = [
     if (oldReq) oldReq.abort()
 
     const req = ScapholdXhr(env, loginParams(idToken))
-      .done(result => {
+      .onDone(result => {
         store.swap(putIn, path, null)
         if (result.ok) {
           send({type: 'auth/scaphold-meta', value: result.body.data})
@@ -85,21 +90,25 @@ export const effects = [
     store.swap(putIn, scapholdMetaPath, value)
   }),
 
-  on({type: 'auth/out'}, ({store}) => {
+  on({type: 'auth/logout'}, ({store}) => {
     store.swap(putInBy, authSyncPath, each(xhrDestroy))
     store.swap(putIn, ['auth'], null)
+  }),
+
+  on({type: 'auth/show'}, ({auth0Lock}) => {
+    auth0Lock.show(auth0ShowConfig)
   }),
 ]
 
 export const watchers = [
-  Watcher((env, read) => {
-    const user = read(...userPath)
-    const pathname = read(...pathnamePath)
+  Watcher((env, {read}) => {
+    const user = read(env.store, userPath)
+    const pathname = read(env.store, pathnamePath)
     if (user && testOr(...publicPathnames)(pathname)) {
       env.send({type: 'nav/replace', value: {pathname: '/channels'}})
     }
     else if (!user && !testOr(...publicPathnames)(pathname)) {
-      // env.send({type: 'nav/replace', value: {pathname: '/'}})
+      env.send({type: 'nav/replace', value: {pathname: '/'}})
     }
   }),
 ]

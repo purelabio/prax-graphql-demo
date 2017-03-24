@@ -59,24 +59,6 @@ function noop () {}
 
 const Err = (key, msg) => new $.util.PluginError(key, msg, {showProperties: false})
 
-const rsyncConfig = {
-  '???': {
-    destination: '/dev/null',
-    root: '???',
-    hostname: '???',
-    username: '???',
-    incremental: true,
-    progress: true,
-    relative: true,
-    emptyDirectories: true,
-    recursive: true,
-    clean: true,
-    exclude: ['.DS_Store'],
-    include: []
-  }
-}
-
-
 /* ********************************* Tasks ********************************* */
 
 /**
@@ -201,15 +183,6 @@ gulp.task('devserver', () => {
 })
 
 /**
- * Deploy
- */
-
-gulp.task('rsync', () => (
-  gulp.src(out.root)
-    .pipe($.rsync(rsyncConfig['???']))
-))
-
-/**
  * Default
  */
 
@@ -231,5 +204,3 @@ gulp.task('watch', gulp.parallel(
 gulp.task('build', gulp.series('clear', gulp.parallel('buildup', 'scripts:build')))
 
 gulp.task('default', gulp.series('clear', gulp.parallel('buildup', 'watch')))
-
-gulp.task('deploy', gulp.series('build', 'rsync'))

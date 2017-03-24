@@ -1,6 +1,5 @@
 import {Router, Route, IndexRoute} from 'react-router'
 import {journal} from './journal'
-import createElement from './react-hack'
 
 import {
   Root,
@@ -10,7 +9,7 @@ import {
 } from './views'
 
 export const routes = (
-  <Router history={journal} createElement={createElement}>
+  <Router history={journal}>
     <Route path='/' component={Root}>
       <IndexRoute component={Auth0SignIn} />
       <Route path='channels' component={Channels} />

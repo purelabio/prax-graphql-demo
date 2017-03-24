@@ -25,10 +25,12 @@ module.exports = {
           fs.realpathSync('src/scripts'),
           fs.realpathSync('node_modules/purelib/src/js'),
         ],
-        use: ['babel-loader'],
+        use: {
+          loader: 'babel-loader',
+        }
       },
       ...(!prod ? [] : [
-        // disable dev features and warnings in React and react-router
+        // disable dev features and warnings in React and related libs
         {
           test: /react.*\.jsx?$/,
           include: /node_modules/,
@@ -48,7 +50,6 @@ module.exports = {
     new webpack.ProvidePlugin({
       _: 'lodash',
       React: 'react',
-      createElement: pt.resolve('src/scripts/react-hack.js'),
     }),
     ...(prod ? [
       new webpack.optimize.UglifyJsPlugin({

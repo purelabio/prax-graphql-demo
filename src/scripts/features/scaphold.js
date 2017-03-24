@@ -1,6 +1,6 @@
-import {scan, pipe, isNil, validate, isFunction, bind} from 'prax'
-import {Xhr, eventToResult, xhrSetMultiCallback, jsonDecode} from 'purelib'
-import {Wsocket} from 'webbs'
+import {pipe, bind} from 'prax'
+import {Xhttp} from 'xhttp'
+import {Webbs} from 'webbs'
 import {scapholdUserIdPath} from './auth'
 import {getf, Watcher} from '../utils'
 
@@ -9,8 +9,8 @@ const scapholdUrl = 'eu-west-1.api.scaphold.io/graphql/curved-robin'
 export const defaultState = {}
 
 export const watchers = [
-  Watcher((env, read) => {
-    reinitWs(env, read('auth', 'meta', 'idToken'))
+  Watcher((env, {read}) => {
+    reinitWs(env, read(env.store, ['auth', 'meta', 'idToken']))
   }),
 ]
 
@@ -23,42 +23,17 @@ export function init (env, onDeinit) {
  */
 
 export function ScapholdXhr (env, body) {
-  const scapholdUserId = scan(env.store.state, scapholdUserIdPath)
-  const xhr = Xhr({
+  const scapholdUserId = env.store.read(scapholdUserIdPath)
+  return Xhttp({
     url: `https://${scapholdUrl}`,
     method: 'post',
-    body: JSON.stringify(body),
-    headers: _.omitBy({
+    headers: {
       'Content-Type': 'application/json',
-      Authorization: scapholdUserId ? `Bearer ${scapholdUserId}` : null
-    }, isNil)
+      Accept: 'application/json',
+      ...(scapholdUserId ? {Authorization: `Bearer ${scapholdUserId}`} : null),
+    },
+    body,
   })
-  xhrSetMultiCallback(xhr, function onXhrDone (event) {
-    xhr.result = parseResult(eventToResult(event))
-  })
-  xhr.done(bind(env.que.push, bind(flushXhr, xhr)))
-  xhr.callbacks = []
-  xhr.done = function xhrDone (fun) {
-    validate(isFunction, fun)
-    xhr.callbacks.push(fun)
-    return xhr
-  }
-  return xhr
-}
-
-function flushXhr (xhr) {
-  try {
-    while (xhr.callbacks.length) xhr.callbacks.shift().call(xhr, xhr.result)
-  }
-  catch (err) {
-    flushXhr(xhr)
-    throw err
-  }
-}
-
-function parseResult (result) {
-  const body = jsonDecode(result.xhr.responseText)
-  return {...result, body}
 }
 
 /**
@@ -70,7 +45,7 @@ function reinitWs (env, idToken) {
 
   if (!idToken) return
 
-  const ws = env.ws = Wsocket(`wss://${scapholdUrl}`, ['graphql-subscriptions'])
+  const ws = env.ws = new Webbs(`wss://${scapholdUrl}`, 'graphql-subscriptions')
 
   ws.open()
 

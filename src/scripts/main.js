@@ -18,27 +18,24 @@ const {Lifecycler, bind} = require('prax')
 
 const app = window.app || (window.app = {})
 
-const lifecycler = app.lifecycler || (app.lifecycler = Lifecycler())
+const lifecycler = app.lifecycler || (app.lifecycler = new Lifecycler())
 
 const {env, reinit} = require('./env')
 
-lifecycler.reinit(env, bind(reinit, require('./features').index))
+lifecycler.reinit(env, bind(reinit, lifecycler, require('./features').index))
 
 /**
  * REPL
  */
 
 const prax = require('prax')
-const praxReact = require('prax/react')
 
 window.app = _.omit(
   {
     React: require('react'),
-    ReactDOM: require('react-dom'),
     ...window.app,
     ...prax,
     prax,
-    praxReact,
     lifecycler,
   },
   // A global `exports` breaks Browsersync (!)

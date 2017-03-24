@@ -1,26 +1,21 @@
-import {cursorsChanged, getIn, validate, isFunction} from 'prax'
+import {Subber, bind, validate, isFunction} from 'prax'
 
-export function Watcher (reader) {
-  validate(isFunction, reader)
+export function Watcher (effect) {
+  validate(isFunction, effect)
 
-  let paths
+  return function initWatcher (env, onDeinit) {
+    const subber = new Subber()
 
-  return function watcher (ref, prev, next) {
-    if (paths && !cursorsChanged(paths, prev, next)) return
+    onDeinit(subber.deconstructor)
 
-    paths = []
-    let sync = true
+    const reader = bind(effect, env)
 
-    function read () {
-      if (sync) paths.push(arguments)
-      return getIn(next, arguments)
+    function rerun (subber) {
+      subber.run(reader, rerun)
     }
 
-    try {
-      reader(ref, read)
-    }
-    finally {
-      sync = false
-    }
+    rerun(subber)
+
+    return subber
   }
 }

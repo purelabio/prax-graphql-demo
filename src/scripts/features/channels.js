@@ -49,7 +49,7 @@ export const effects = [
 
   on({type: 'ws/opened'}, env => {
     ScapholdXhr(env, allChannels)
-      .done(({body: {data}}) => {
+      .onDone(({body: {data}}) => {
         const channels = _.map(scan(data, 'viewer', 'allChannels', 'edges'), 'node')
         env.store.swap(pipe(
           alter(putIn, channelByIdPath, _.keyBy(channels, 'id')),

@@ -1,46 +1,67 @@
+import {split, replace} from 'lodash/fp'
+import {PraxComponent} from 'prax'
 import {Link as RouterLink, IndexLink} from 'react-router'
-import {seq, testOr} from 'prax'
-import {strJoin} from 'purelib'
-import {preventDefault, linkToDict} from '../utils'
+import {seq, testBy, ifelse, id, pipe, testOr} from 'prax'
+import {preventDefault, linkToDict, strJoin, getf} from '../utils'
 
-// TODO roll our own "active route" detection. To define the active class,
-// accept a function from bool to string instead of just a string.
-export function Link (
-  {to, trackActive, activeClassName, disabled, onClick, className, ...props},
-  {read}
-) {
-  if (trackActive) {
-    // Track route change and set active class. Disabled by default due to the
-    // performance cost in the `react-router` link implementation.
-    read('nav', 'location')
-    props = {activeClassName: activeClassName || 'active', ...props}
+export class Link extends PraxComponent {
+  subrender ({read}) {
+    const {
+      env: {store},
+      props: {to, getActiveClassName, disabled, onClick, className, ...rest},
+    } = this
+    let props = rest
+
+    const activeClassName = (
+      _.isFunction(getActiveClassName)
+      ? getActiveClassName(testBy(
+        toPath(linkPathname(to)),
+        // Index path looks like this: ['']
+        // Non-index path (say, 'about') looks like this: ['', 'about']
+        read(store, ['nav', 'location', 'path'])
+      ))
+      : ''
+    )
+
+    props = {
+      ...props,
+      onClick: !disabled ? onClick : seq(preventDefault, onClick || _.noop),
+      className: strJoin(' ', [
+        disabled && 'no-pointer-styles',
+        activeClassName,
+        className,
+      ]),
+    }
+
+    return (
+      isEmptyLink(to)
+      ? <a {...props} />
+      : isIndexLink(to)
+      ? <IndexLink {...props} to={to} />
+      : <RouterLink {...props} to={to} />
+    )
   }
-
-  props = {
-    ...props,
-    onClick: !disabled ? onClick : seq(preventDefault, onClick || _.noop),
-    className: !disabled ? className : `no-pointer-styles ${className || ''}`,
-  }
-
-  return (
-    isEmptyLink(to)
-    ? <a {...props} />
-    : isIndexLink(to)
-    ? <IndexLink {...props} to={to} />
-    : <RouterLink {...props} to={to} />
-  )
 }
 
 const isEmptyLink = testOr(_.isNil, {pathname: _.isNil})
 
 const isIndexLink = testOr('', '/', {pathname: ''}, {pathname: '/'})
 
-export function RelativeLink ({to, ...props}, {read}) {
-  const {pathname, query, hash} = linkToDict(to)
-  const location = {
-    pathname: strJoin('/', [read('nav', 'location', 'pathname'), pathname]),
-    query,
-    hash,
+const linkPathname = ifelse(_.isString, id, getf('pathname'))
+
+// Prepend /
+// 'blah' -> '/blah' -> ['', 'blah']
+const toPath = pipe(replace(/^([^/])/, '/$1'), split('/'))
+
+export class RelativeLink extends PraxComponent {
+  subrender ({read}) {
+    const {env: {store}, props: {to, ...props}} = this
+    const {pathname, query, hash} = linkToDict(to)
+    const location = {
+      pathname: strJoin('/', [read(store, ['nav', 'location', 'pathname']), pathname]),
+      query,
+      hash,
+    }
+    return <Link {...props} to={location} />
   }
-  return <Link to={location} {...props}/>
 }

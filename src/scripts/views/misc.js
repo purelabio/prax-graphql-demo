@@ -1,6 +1,4 @@
-import GraphiQL from 'graphiql'
 import {Link} from './link'
-import {runQueryString} from '../gql'
 
 export const Page404 = () => (
   <div className='col-center-center'>
@@ -17,11 +15,3 @@ export const Button = ({children, ...props}) => (
     </span>
   </button>
 )
-
-export function GraphqlEditor () {
-  return (
-    <div className='height-100vh'>
-      <GraphiQL fetcher={runQueryString} />
-    </div>
-  )
-}

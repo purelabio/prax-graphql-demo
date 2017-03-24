@@ -1,11 +1,11 @@
-const {Atom, TaskQue, getIn, putIn, extract, merge, bind, testOr,
-  fuseModules, joinReducers} = require('prax')
+import {Atom, TaskQue, PraxComponent, putIn, extract, fuseModules, joinReducers,
+  bind, merge, testOr} from 'prax'
 
-const que = TaskQue()
+const que = new TaskQue()
 
 export const env = {
-  store: Atom(),
-  reducers: [],
+  que,
+  store: new Atom(),
   effects: [],
   send: bind(que.push, function send (msg) {
     maybeLog(msg)
@@ -14,7 +14,6 @@ export const env = {
       fun(env, msg)
     })
   }),
-  que,
 }
 
 const isBoring = testOr({type: 'dom/post-render'}, {type: 'time/now'}, {type: 'dom/focus-change'})
@@ -23,24 +22,25 @@ function maybeLog (msg) {
   if (window.devMode && !isBoring(msg)) console.debug('[Event]:', msg)
 }
 
-export function reinit (features, env, onDeinit) {
+// Global hack
+PraxComponent.prototype.env = env
+
+export function reinit (lifecycler, features, env, onDeinit) {
   const {init} = fuseModules(features)
 
   env.reducers = extract(['reducers'], features)
 
   env.effects = extract(['effects'], features)
 
-  env.watchers = extract(['watchers'], features)
+  env.store.state = merge(...extract(['defaultState'], features), lifecycler.lastState)
 
-  env.store.watchers = [function envWatcher (store, prev, next) {
-    env.watchers.forEach(function notifyWatcher (watcher) {
-      watcher(env, prev, next)
-    })
-  }]
+  onDeinit(() => {
+    lifecycler.lastState = env.store.state
+  })
 
-  env.store.state = merge(...extract(['state'], features), env.store.state)
-
-  env.store.notifyWatchers(env.store.state, env.store.state)
+  env.watchers = extract(['watchers'], features).map(initWatcher => (
+    initWatcher(env, onDeinit)
+  ))
 
   init(env, onDeinit)
 }
@@ -53,10 +53,10 @@ window.app = {
   ...window.app,
   env,
   store: env.store,
-  read () {
-    return getIn(env.store.state, arguments)
+  read (query) {
+    return env.store.read(query)
   },
-  set (...path) {
-    env.store.swap(putIn, path, path.pop())
+  set (path, value) {
+    env.store.swap(putIn, path, value)
   },
 }
