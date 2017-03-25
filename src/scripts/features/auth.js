@@ -10,11 +10,6 @@ const AUTH0_LOCK_CONFIG = {
   domain: 'purelabio.auth0.com',
 }
 
-// This must be passed to `.show()`. If this is not specified, redirect breaks
-// when authing from any non-root page. If this is passed to the constructor,
-// authentication breaks completely.
-export const auth0ShowConfig = {auth: {redirectUrl: `${window.location.origin}`}}
-
 export const authMetaPath        = ['auth', 'meta']
 export const userPath            = ['auth', 'user']
 export const scapholdMetaPath    = ['auth', 'scapholdMeta']
@@ -96,7 +91,12 @@ export const effects = [
   }),
 
   on({type: 'auth/show'}, ({auth0Lock}) => {
-    auth0Lock.show(auth0ShowConfig)
+    auth0Lock.show({
+      // Doesn't work
+      auth: {redirectUrl: `${window.location.origin}`},
+      // Doesn't work
+      redirectUrl: `${window.location.origin}`,
+    })
   }),
 ]
 
@@ -116,6 +116,7 @@ export const watchers = [
 export function init (env, onDeinit) {
   const auth0Lock = defonce(env, ['auth0Lock'], function initAuth0Lock () {
     const {clientId, domain} = AUTH0_LOCK_CONFIG
+    // If we set `redirectUrl` here, authentication breaks completely.
     return new Auth0Lock(clientId, domain, {})
   })
 
