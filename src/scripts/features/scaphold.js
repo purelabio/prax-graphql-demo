@@ -1,7 +1,6 @@
 import {pipe, bind, RenderQue} from 'prax'
 import {Xhr, eventToResult, xhrFlushCallbacks} from 'xhttp'
 import {Webbs} from 'webbs'
-import {scapholdUserIdPath} from './auth'
 import {getf, Watcher} from '../utils'
 
 const scapholdUrl = 'eu-west-1.api.scaphold.io/graphql/curved-robin'
@@ -23,14 +22,14 @@ export function init (env, onDeinit) {
  */
 
 export function ScapholdXhr (env, body) {
-  const scapholdUserId = env.store.read(scapholdUserIdPath)
+  const idToken = env.store.read(['auth', 'meta', 'idToken'])
   return Xhr({
     url: `https://${scapholdUrl}`,
     method: 'post',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      ...(scapholdUserId ? {Authorization: `Bearer ${scapholdUserId}`} : null),
+      ...(idToken ? {Authorization: `Bearer ${idToken}`} : null),
     },
     body,
   }, onXhrDone)
